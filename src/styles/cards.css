@@ -1,0 +1,87 @@
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+  transition: box-shadow 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 4px 20px rgba(108, 189, 181, 0.1);
+}
+
+.card-tag {
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-tag::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.card-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  font-weight: 400;
+  margin-bottom: 10px;
+  color: var(--dark);
+}
+
+.card-body {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+
+.card.vision .card-tag {
+  color: var(--teal);
+}
+
+.card.vision .card-tag::before {
+  background: var(--teal);
+}
+
+.card.mision .card-tag {
+  color: #8aaa9a;
+}
+
+.card.mision .card-tag::before {
+  background: var(--sage);
+}
+
+.card.valor .card-tag {
+  color: #b0a060;
+}
+
+.card.valor .card-tag::before {
+  background: var(--cream);
+  border: 1px solid #c0b870;
+}
+
+.card.usuario .card-tag {
+  color: var(--muted);
+}
+
+.card.usuario .card-tag::before {
+  background: var(--border);
+}
+
+.card.full {
+  grid-column: 1 / -1;
+}

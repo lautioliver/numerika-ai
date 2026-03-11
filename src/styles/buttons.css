@@ -1,0 +1,47 @@
+.btn-cta {
+  background: var(--dark);
+  color: var(--cream);
+  border: none;
+  border-radius: 8px;
+  padding: 13px 28px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-cta:hover {
+  background: #2d3a38;
+}
+
+.btn-cta.outline {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.btn-cta.outline:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.btn-run {
+  width: 100%;
+  background: var(--dark);
+  color: var(--cream);
+  border: none;
+  border-radius: 8px;
+  padding: 13px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-run:hover {
+  opacity: 0.85;
+}

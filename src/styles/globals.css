@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --cream: #E3DFBA;
+  --sage: #C8D6BF;
+  --teal-lt: #93CCC6;
+  --teal: #6CBDB5;
+  --dark: #1A1F1E;
+  --bg: #f5f3e8;
+  --surface: #faf9f2;
+  --border: #dddbc8;
+  --muted: #7a8a82;
+  --text: #1A1F1E;
+}
+
+body {
+  background: var(--bg);
+}
+
+.app {
+  min-height: 100vh;
+  background: var(--bg);
+  font-family: 'DM Mono', monospace;
+  color: var(--text);
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up {
+  animation: fadeUp 0.35s ease forwards;
+}
+
+.fade-up-2 {
+  animation: fadeUp 0.35s 0.08s ease both;
+}
+
+.fade-up-3 {
+  animation: fadeUp 0.35s 0.16s ease both;
+}
