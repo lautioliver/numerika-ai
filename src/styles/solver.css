@@ -288,3 +288,18 @@
   letter-spacing: 2px;
   text-transform: uppercase;
 }
+
+/* Botones deshabilitados */
+.btn-run:disabled {
+  cursor: not-allowed;
+  background: #999;
+}
+
+/* Textos de ayuda */
+small {
+  display: block;
+  color: var(--muted);
+  font-size: 8px;
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
