@@ -1,376 +1,342 @@
-import React, { useState, useRef } from "react";
-import { METHODS } from "../constants/data";
-import { MethodTypeTag } from "../components/MethodTypeTag";
-import { MockGraph } from "../components/MockGraph";
+import { useState, useMemo } from "react";
+import { InteractiveChart } from "../components/InteractiveChart";
+import { GuideAccordion } from "../components/GuideAccordion";
+import { Field } from "../components/Field";
 import {
+  parseFunction,
   biseccion,
   reglaFalsa,
   newtonRaphson,
   secante,
   puntoFijo,
+  getPoints,
 } from "../utils/numericalMethods";
 
-export const SolverPage = ({ activeMethod, setActiveMethod, calculated, onCalculate }) => {
-  const selected = METHODS.find((m) => m.id === activeMethod);
+// ─── Paleta ───────────────────────────────────────────────────────────────────
+const C = {
+  cream: "#E3DFBA",
+  sage: "#C8D6BF",
+  tealLt: "#93CCC6",
+  teal: "#6CBDB5",
+  dark: "#1A1F1E",
+  bg: "#f5f3e8",
+  surface: "#faf9f2",
+  border: "#dddbc8",
+  muted: "#7a8a82",
+  text: "#1A1F1E",
+};
 
-  // Estado para capturar inputs
-  const [funcExpr, setFuncExpr] = useState("x^2 - x - 2");
-  const [aValue, setAValue] = useState("1");
-  const [bValue, setBValue] = useState("3");
-  const [x0Value, setX0Value] = useState("1.5");
-  const [x1Value, setX1Value] = useState("2.5");
-  const [tolerance, setTolerance] = useState("0.001");
-  
-  // Estado para resultados
+const METHODS = [
+  {
+    id: "biseccion",
+    name: "Bisección",
+    type: "cerrado",
+    desc: "Divide [a,b] a la mitad. Convergencia garantizada si f(a)·f(b) < 0.",
+    inputs: ["fx", "ab", "tol"],
+    cols: ["n", "a", "b", "c", "fc", "err"],
+    labels: { n: "n", a: "a", b: "b", c: "c", fc: "f(c)", err: "Error %" },
+    run: (v) => biseccion(v.fx, v.a, v.b, parseFloat(v.tol) || 1e-4),
+  },
+  {
+    id: "reglafalsa",
+    name: "Regla Falsa",
+    type: "cerrado",
+    desc: "Interpolación lineal entre a y b. Más veloz en funciones suaves.",
+    inputs: ["fx", "ab", "tol"],
+    cols: ["n", "a", "b", "c", "fc", "err"],
+    labels: { n: "n", a: "a", b: "b", c: "c", fc: "f(c)", err: "Error %" },
+    run: (v) => reglaFalsa(v.fx, v.a, v.b, parseFloat(v.tol) || 1e-4),
+  },
+  {
+    id: "newton",
+    name: "Newton-Raphson",
+    type: "abierto",
+    desc: "Usa f′(x) numérica. Convergencia cuadrática — muy rápido cerca de la raíz.",
+    inputs: ["fx", "x0", "tol"],
+    cols: ["n", "x", "fx", "fpx", "x1", "err"],
+    labels: { n: "n", x: "xₙ", fx: "f(xₙ)", fpx: "f′(xₙ)", x1: "xₙ₊₁", err: "Error %" },
+    run: (v) => newtonRaphson(v.fx, v.x0, parseFloat(v.tol) || 1e-4),
+  },
+  {
+    id: "secante",
+    name: "Secante",
+    type: "abierto",
+    desc: "Aproxima f′(x) con dos puntos. No requiere derivada analítica.",
+    inputs: ["fx", "x0", "x1sec", "tol"],
+    cols: ["n", "x0", "x1", "x2", "fx2", "err"],
+    labels: { n: "n", x0: "x₀", x1: "x₁", x2: "x₂", fx2: "f(x₂)", err: "Error %" },
+    run: (v) => secante(v.fx, v.x0, v.x1sec, parseFloat(v.tol) || 1e-4),
+  },
+  {
+    id: "puntofijo",
+    name: "Punto Fijo",
+    type: "abierto",
+    desc: "Itera x = g(x). Converge si |g′(x)| < 1 en el entorno de la raíz.",
+    inputs: ["gx", "x0", "tol"],
+    cols: ["n", "x", "gx", "err"],
+    labels: { n: "n", x: "xₙ", gx: "g(xₙ)", err: "Error %" },
+    run: (v) => puntoFijo(v.gx, v.x0, parseFloat(v.tol) || 1e-4),
+  },
+];
+
+// ─── App ──────────────────────────────────────────────────────────────────────
+export function SolverPage({ activeMethod = "biseccion", setActiveMethod, onCalculate }) {
+  const [mid, setMid] = useState(activeMethod);
+  const [vals, setVals] = useState({
+    fx: "x^2 - x - 2",
+    a: "1",
+    b: "3",
+    x0: "1.5",
+    x1sec: "2.5",
+    gx: "sqrt(x + 2)",
+    tol: "0.0001",
+  });
   const [result, setResult] = useState(null);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [calcErr, setCalcErr] = useState(null);
 
-  const handleMethodChange = (methodId) => {
-    setActiveMethod(methodId);
+  const method = METHODS.find((m) => m.id === mid);
+  const set = (k, v) => setVals((p) => ({ ...p, [k]: v }));
+
+  const run = () => {
+    setCalcErr(null);
     setResult(null);
-    setError(null);
-  };
-
-  const handleCalculate = async () => {
-    setLoading(true);
-    setError(null);
-    setResult(null);
-
-    try {
-      const tol = parseFloat(tolerance);
-      if (isNaN(tol) || tol <= 0) {
-        setError("Tolerancia inválida. Debe ser un número positivo.");
-        setLoading(false);
-        return;
-      }
-
-      let res;
-
-      // Ejecutar método según selección
-      switch (activeMethod) {
-        case "biseccion":
-          res = biseccion(funcExpr, aValue, bValue, tol);
-          break;
-        case "reglafalsa":
-          res = reglaFalsa(funcExpr, aValue, bValue, tol);
-          break;
-        case "newton":
-          res = newtonRaphson(funcExpr, x0Value, tol);
-          break;
-        case "secante":
-          res = secante(funcExpr, x0Value, x1Value, tol);
-          break;
-        case "puntofijo":
-          res = puntoFijo(funcExpr, x0Value, tol);
-          break;
-        default:
-          setError("Método no seleccionado.");
-          break;
-      }
-
-      if (res.error) {
-        setError(res.error);
-      } else {
-        setResult(res);
-        onCalculate();
-      }
-    } catch (err) {
-      setError("Error durante el cálculo: " + err.message);
-    } finally {
-      setLoading(false);
+    const r = method.run(vals);
+    if (r.error) {
+      setCalcErr(r.error);
+      return;
     }
+    setResult(r);
+    if (onCalculate) onCalculate();
   };
+
+  const graphExpr = mid === "puntofijo" ? vals.gx : vals.fx;
+  const points = useMemo(() => {
+    let xMin = -4,
+      xMax = 6;
+    if (method.type === "cerrado") {
+      const a = parseFloat(vals.a),
+        b = parseFloat(vals.b);
+      if (!isNaN(a) && !isNaN(b)) {
+        xMin = a - Math.abs(b - a) * 0.6;
+        xMax = b + Math.abs(b - a) * 0.6;
+      }
+    } else {
+      const x0 = parseFloat(vals.x0);
+      if (!isNaN(x0)) {
+        xMin = x0 - 4;
+        xMax = x0 + 5;
+      }
+    }
+    return getPoints(graphExpr, xMin, xMax);
+  }, [graphExpr, vals.a, vals.b, vals.x0, mid]);
 
   return (
-    <div className="solver fade-up">
-      <div className="page-header">
-        <div className="page-eyebrow">Solver</div>
-        <h2 className="page-title">Calculá paso a paso</h2>
+    <div style={{ fontFamily: "'DM Mono',monospace", color: C.dark, background: C.bg, minHeight: "100vh", padding: "32px 24px" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap');`}</style>
+
+      {/* Header */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ fontSize: 10, letterSpacing: "3px", textTransform: "uppercase", color: C.muted, marginBottom: 8, display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ display: "inline-block", width: 18, height: 1, background: C.teal }} />
+          Solver
+        </div>
+        <h2 style={{ fontFamily: "'DM Serif Display',serif", fontSize: 26, fontWeight: 400, color: C.dark, margin: 0 }}>
+          Calculá <em style={{ color: C.teal, fontStyle: "italic" }}>paso a paso</em>
+        </h2>
       </div>
 
-      <div className="solver-grid">
-        {/* LEFT PANEL */}
-        <div className="panel">
-          <div className="panel-header">
-            <span className="panel-title">Configuración</span>
-            <MethodTypeTag type={selected?.type} />
+      {/* Method tabs */}
+      <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 18 }}>
+        {METHODS.map((m) => (
+          <button
+            key={m.id}
+            onClick={() => {
+              setMid(m.id);
+              setResult(null);
+              setCalcErr(null);
+            }}
+            style={{
+              padding: "8px 14px",
+              borderRadius: 8,
+              cursor: "pointer",
+              border: `1px solid ${mid === m.id ? C.teal : C.border}`,
+              background: mid === m.id ? "rgba(108,189,181,0.1)" : C.surface,
+              color: mid === m.id ? C.teal : C.muted,
+              fontFamily: "'DM Mono',monospace",
+              fontSize: 11,
+              lineHeight: 1.4,
+              textAlign: "left",
+            }}
+          >
+            <div>{m.name}</div>
+            <div style={{ fontSize: 9, letterSpacing: "1.5px", textTransform: "uppercase", opacity: 0.7 }}>{m.type}</div>
+          </button>
+        ))}
+      </div>
+
+      <div
+        style={{
+          fontSize: 11,
+          color: C.muted,
+          lineHeight: 1.7,
+          padding: "10px 14px",
+          background: C.surface,
+          border: `1px solid ${C.border}`,
+          borderLeft: `3px solid ${C.teal}`,
+          borderRadius: 8,
+          marginBottom: 22,
+        }}
+      >
+        {method.desc}
+      </div>
+
+      {/* Grid — config | results */}
+      <div style={{ display: "grid", gridTemplateColumns: "250px 1fr", gap: 16, alignItems: "start" }}>
+        {/* Config */}
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
+          <div style={{ padding: "13px 18px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 9, letterSpacing: "2.5px", textTransform: "uppercase", color: C.muted }}>Configuración</span>
+            <span
+              style={{
+                fontSize: 9,
+                padding: "3px 9px",
+                borderRadius: 20,
+                color: method.type === "cerrado" ? C.teal : "#6a8a6a",
+                background: method.type === "cerrado" ? "rgba(108,189,181,0.1)" : "rgba(200,214,191,0.15)",
+                border: `1px solid ${method.type === "cerrado" ? "rgba(108,189,181,0.3)" : "rgba(200,214,191,0.4)"}`,
+              }}
+            >
+              {method.type}
+            </span>
           </div>
-          <div className="panel-body">
-            <div className="field">
-              <label>Función f(x)</label>
-              <input
-                type="text"
-                value={funcExpr}
-                onChange={(e) => setFuncExpr(e.target.value)}
-                placeholder="Ej: x^2 - x - 2"
-              />
-              <small style={{ color: "var(--muted)", fontSize: "8px", marginTop: "4px" }}>
-                Usá: ^ (potencia), sqrt, sin, cos, tan, ln, exp, pi
-              </small>
-            </div>
-
-            <div className="field">
-              <label>Método</label>
-              <div className="method-grid">
-                {METHODS.map((m) => (
-                  <button
-                    key={m.id}
-                    className={`method-pill ${activeMethod === m.id ? "active" : ""}`}
-                    onClick={() => handleMethodChange(m.id)}
-                  >
-                    <span className="pill-name">{m.name}</span>
-                    <span className="pill-type">{m.type}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {selected?.type === "cerrado" && (
-              <div className="field">
-                <label>Intervalo [a, b]</label>
-                <div className="field-row">
+          <div style={{ padding: 18 }}>
+            {method.inputs.includes("fx") && <Field label="f(x)" value={vals.fx} onChange={(v) => set("fx", v)} placeholder="x^2 - x - 2" hint="^ potencia · * multiplicar" />}
+            {method.inputs.includes("gx") && <Field label="g(x)" value={vals.gx} onChange={(v) => set("gx", v)} placeholder="sqrt(x + 2)" hint="Despejá x = g(x)" />}
+            {method.inputs.includes("ab") && (
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "block", fontSize: 9, letterSpacing: "2px", textTransform: "uppercase", color: C.muted, marginBottom: 6 }}>Intervalo [a, b]</label>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   <input
-                    type="text"
-                    value={aValue}
-                    onChange={(e) => setAValue(e.target.value)}
+                    value={vals.a}
+                    onChange={(e) => set("a", e.target.value)}
                     placeholder="a"
+                    style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 12px", fontFamily: "'DM Mono',monospace", fontSize: 13, color: C.dark, outline: "none", width: "100%", boxSizing: "border-box" }}
                   />
                   <input
-                    type="text"
-                    value={bValue}
-                    onChange={(e) => setBValue(e.target.value)}
+                    value={vals.b}
+                    onChange={(e) => set("b", e.target.value)}
                     placeholder="b"
+                    style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 12px", fontFamily: "'DM Mono',monospace", fontSize: 13, color: C.dark, outline: "none", width: "100%", boxSizing: "border-box" }}
                   />
                 </div>
               </div>
             )}
-            {selected?.type === "abierto" && (
-              <div className="field">
-                <label>Punto(s) inicial(es)</label>
-                <input
-                  type="text"
-                  value={x0Value}
-                  onChange={(e) => setX0Value(e.target.value)}
-                  placeholder="x₀"
-                />
-                {(activeMethod === "secante" || activeMethod === "puntofijo") && (
-                  <input
-                    type="text"
-                    value={x1Value}
-                    onChange={(e) => setX1Value(e.target.value)}
-                    placeholder="x₁ (solo Secante)"
-                    style={{ marginTop: "8px" }}
-                  />
-                )}
+            {method.inputs.includes("x0") && <Field label="Punto inicial x₀" value={vals.x0} onChange={(v) => set("x0", v)} placeholder="1.5" />}
+            {method.inputs.includes("x1sec") && <Field label="Segundo punto x₁" value={vals.x1sec} onChange={(v) => set("x1sec", v)} placeholder="2.5" />}
+            <Field label="Tolerancia" value={vals.tol} onChange={(v) => set("tol", v)} placeholder="0.0001" hint="0.001 → error < 0.1%" />
+
+            {calcErr && (
+              <div style={{ padding: "10px 12px", background: "rgba(200,80,60,0.08)", border: "1px solid rgba(200,80,60,0.2)", borderRadius: 8, marginBottom: 14, fontSize: 11, color: "#b05040", lineHeight: 1.6 }}>
+                {calcErr}
               </div>
             )}
-
-            <div className="field">
-              <label>Tolerancia</label>
-              <input
-                type="text"
-                value={tolerance}
-                onChange={(e) => setTolerance(e.target.value)}
-                placeholder="0.001"
-              />
-            </div>
-
-            <div className="divider">
-              <span>listo</span>
-            </div>
+            <div style={{ borderTop: `1px solid ${C.border}`, margin: "16px 0" }} />
             <button
-              className="btn-run"
-              onClick={handleCalculate}
-              disabled={loading}
-              style={{ opacity: loading ? 0.6 : 1 }}
+              onClick={run}
+              style={{ width: "100%", background: C.dark, color: C.cream, border: "none", borderRadius: 8, padding: 12, fontFamily: "'DM Mono',monospace", fontSize: 10, letterSpacing: "2px", textTransform: "uppercase", cursor: "pointer" }}
             >
-              {loading ? "Calculando..." : "Calcular"}
+              Calcular
             </button>
-
-            {error && (
-              <div
-                style={{
-                  marginTop: "12px",
-                  padding: "10px",
-                  background: "rgba(255, 200, 200, 0.2)",
-                  border: "1px solid rgba(255, 100, 100, 0.5)",
-                  borderRadius: "6px",
-                  color: "#c41e3a",
-                  fontSize: "10px",
-                }}
-              >
-                ⚠ {error}
-              </div>
-            )}
           </div>
         </div>
 
-        {/* RIGHT PANEL */}
-        <div className="panel">
-          <div className="panel-header">
-            <span className="panel-title">Resultado</span>
-            {result && (
-              <span style={{ fontSize: "10px", color: "var(--muted)", letterSpacing: "1px" }}>
-                {result.totalIter} iteración{result.totalIter !== 1 ? "es" : ""}
-              </span>
-            )}
+        {/* Results */}
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
+          <div style={{ padding: "13px 18px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 9, letterSpacing: "2.5px", textTransform: "uppercase", color: C.muted }}>Resultado</span>
+            {result && <span style={{ fontSize: 9, color: C.muted, letterSpacing: "1px" }}>{result.totalIter} iteraciones</span>}
           </div>
-          <div className="panel-body">
-            {!result ? (
-              <div className="result-placeholder">
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.2"
-                >
+          <div style={{ padding: 18 }}>
+            {!result && !calcErr && (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 260, color: C.muted, gap: 10 }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
                   <circle cx="12" cy="12" r="10" />
                   <path d="M12 8v4M12 16h.01" />
                 </svg>
-                <p>Configurá y calculá</p>
+                <p style={{ fontSize: 10, letterSpacing: "2px", textTransform: "uppercase", margin: 0 }}>Configurá y calculá</p>
               </div>
-            ) : (
-              <div className="fade-up">
+            )}
+
+            {result && (
+              <>
+                {/* Status */}
                 <div
-                  className="status-bar"
                   style={{
-                    background: result.converged
-                      ? "rgba(108,189,181,0.1)"
-                      : "rgba(255, 180, 100, 0.1)",
-                    borderColor: result.converged
-                      ? "rgba(108,189,181,0.3)"
-                      : "rgba(255, 150, 50, 0.3)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "8px 12px",
+                    borderRadius: 8,
+                    marginBottom: 18,
+                    background: result.converged ? "rgba(108,189,181,0.1)" : "rgba(212,168,75,0.1)",
+                    border: `1px solid ${result.converged ? "rgba(108,189,181,0.3)" : "rgba(212,168,75,0.3)"}`,
                   }}
                 >
-                  <div
-                    className="status-dot"
-                    style={{
-                      background: result.converged ? "var(--teal)" : "#ff9933",
-                    }}
-                  />
-                  <span
-                    className="status-text"
-                    style={{
-                      color: result.converged ? "var(--teal)" : "#ff9933",
-                    }}
-                  >
-                    {result.converged ? "Convergencia" : "No convergió"}
-                    {result.root !== null && ` · raíz ≈ ${result.root}`}
+                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: result.converged ? C.teal : "#d4a84b" }} />
+                  <span style={{ fontSize: 10, letterSpacing: "1.5px", textTransform: "uppercase", color: result.converged ? C.teal : "#d4a84b" }}>
+                    {result.converged ? `Convergencia · raíz ≈ ${result.root}` : `Sin convergencia tras ${result.totalIter} iter.`}
                   </span>
                 </div>
 
-                <div className="graph-area">
-                  <span className="graph-label">f(x) = {funcExpr}</span>
-                  <MockGraph />
+                {/* Interactive chart */}
+                <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: "16px 14px 10px", marginBottom: 18 }}>
+                  <InteractiveChart points={points} root={result.root} fnLabel={mid === "puntofijo" ? `g(x) = ${vals.gx}` : `f(x) = ${vals.fx}`} />
                 </div>
 
-                <table className="iter-table">
-                  <thead>
-                    <tr>
-                      {activeMethod === "newton" && (
-                        <>
-                          <th>n</th>
-                          <th>x</th>
-                          <th>f(x)</th>
-                          <th>f'(x)</th>
-                          <th>x₁</th>
-                          <th>err (%)</th>
-                        </>
-                      )}
-                      {activeMethod === "secante" && (
-                        <>
-                          <th>n</th>
-                          <th>x₀</th>
-                          <th>x₁</th>
-                          <th>x₂</th>
-                          <th>f(x₂)</th>
-                          <th>err (%)</th>
-                        </>
-                      )}
-                      {activeMethod === "puntofijo" && (
-                        <>
-                          <th>n</th>
-                          <th>x</th>
-                          <th>g(x)</th>
-                          <th>err (%)</th>
-                        </>
-                      )}
-                      {(activeMethod === "biseccion" || activeMethod === "reglafalsa") && (
-                        <>
-                          <th>n</th>
-                          <th>a</th>
-                          <th>b</th>
-                          <th>c</th>
-                          <th>f(c)</th>
-                          <th>err (%)</th>
-                        </>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.iterations.map((row, idx) => (
-                      <tr key={idx} className={row.converged ? "converged" : ""}>
-                        {activeMethod === "newton" && (
-                          <>
-                            <td>{row.n}</td>
-                            <td>{row.x}</td>
-                            <td>{row.fx}</td>
-                            <td>{row.fpx}</td>
-                            <td>{row.x1}</td>
-                            <td>{row.err}</td>
-                          </>
-                        )}
-                        {activeMethod === "secante" && (
-                          <>
-                            <td>{row.n}</td>
-                            <td>{row.x0}</td>
-                            <td>{row.x1}</td>
-                            <td>{row.x2}</td>
-                            <td>{row.fx2}</td>
-                            <td>{row.err}</td>
-                          </>
-                        )}
-                        {activeMethod === "puntofijo" && (
-                          <>
-                            <td>{row.n}</td>
-                            <td>{row.x}</td>
-                            <td>{row.gx}</td>
-                            <td>{row.err}</td>
-                          </>
-                        )}
-                        {(activeMethod === "biseccion" || activeMethod === "reglafalsa") && (
-                          <>
-                            <td>{row.n}</td>
-                            <td>{row.a}</td>
-                            <td>{row.b}</td>
-                            <td>{row.c}</td>
-                            <td>{row.fc}</td>
-                            <td>{row.err}</td>
-                          </>
-                        )}
+                {/* Table */}
+                <div style={{ overflowX: "auto", borderRadius: 8, border: `1px solid ${C.border}` }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
+                    <thead>
+                      <tr style={{ background: C.bg }}>
+                        {method.cols.map((col) => (
+                          <th key={col} style={{ fontSize: 9, letterSpacing: "1.5px", textTransform: "uppercase", color: C.muted, textAlign: "left", padding: "8px 10px", borderBottom: `1px solid ${C.border}`, whiteSpace: "nowrap" }}>
+                            {method.labels[col]}
+                          </th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {result.iterations.map((row, i) => (
+                        <tr key={i} style={{ background: row.converged ? "rgba(108,189,181,0.07)" : "transparent" }}>
+                          {method.cols.map((col) => (
+                            <td key={col} style={{ padding: "7px 10px", borderBottom: `1px solid ${C.border}`, color: row.converged && col === "err" ? C.teal : C.dark, fontFamily: "'DM Mono',monospace" }}>
+                              {row[col] === null || row[col] === undefined ? "—" : col === "err" && row[col] !== null ? `${row[col]}%` : row[col]}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-                <div className="ai-insight">
-                  <div className="ai-label">
-                    {result.converged ? "✓ Convergencia alcanzada" : "⚠ No convergió"}
+                {/* AI placeholder */}
+                <div style={{ padding: "12px 14px", background: "rgba(200,214,191,0.15)", border: "1px solid rgba(200,214,191,0.4)", borderRadius: 8, marginTop: 16 }}>
+                  <div style={{ fontSize: 9, letterSpacing: "2px", textTransform: "uppercase", color: "#6a8a6a", marginBottom: 5, display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: "50%", background: C.sage, display: "inline-block" }} />
+                    Explicación IA · próximamente
                   </div>
-                  <p className="ai-text">
-                    {result.converged
-                      ? `El método ${selected.name} convergió en ${result.totalIter} iteración${result.totalIter !== 1 ? "es" : ""} a la raíz x = ${result.root}. La tolerancia fue satisfecha dentro de los parámetros especificados.`
-                      : `El método alcanzó el máximo de iteraciones (${result.totalIter}) sin converger. Intentá ajustar los parámetros iniciales o la tolerancia.`}
+                  <p style={{ fontSize: 11, color: C.muted, lineHeight: 1.8, fontStyle: "italic", margin: 0 }}>
+                    Aquí aparecerá la explicación generada por IA sobre la convergencia del método y el comportamiento de cada iteración.
                   </p>
                 </div>
-              </div>
+              </>
             )}
+
+            {/* Guide accordion — siempre visible abajo */}
+            <GuideAccordion methodId={mid} />
           </div>
         </div>
       </div>
     </div>
   );
-};
+}
