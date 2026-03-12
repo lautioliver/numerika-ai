@@ -13,6 +13,21 @@ const C = {
   text: "#1A1F1E",
 };
 
+/**
+ * GuideAccordion — Acordeón con instrucciones paso a paso para cada método numérico.
+ * 
+ * Componente educativo que explica cómo funciona cada método:
+ * - Pasos conceptuales y matemáticos
+ * - Ejemplos con valores numéricos
+ * - Código terminal-like para visual appeal
+ * 
+ * @param {Object} props
+ * @param {string} props.methodId - ID del método (biseccion, reglafalsa, newton, secante, puntofijo)
+ * 
+ * @example
+ * <GuideAccordion methodId="newton" />
+ */
+
 const GUIDES = {
   biseccion: {
     title: "¿Cómo funciona la Bisección?",

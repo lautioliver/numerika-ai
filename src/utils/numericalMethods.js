@@ -5,8 +5,33 @@
 
 const MAX_ITER = 100;
 
-// ─── Evaluador seguro de funciones ───────────────────────────────────────────
+/**
+ * ⚠️ FUNCIÓN CRÍTICA DE SEGURIDAD
+ * Convierte notación matemática a función JS evaluable.
+ * 
+ * Caracteres/funciones permitidas:
+ * - Variables y números: x, 0-9
+ * - Operadores: + - * / ^ ( )
+ * - Funciones: sin, cos, tan, sqrt, log, ln, exp, pi, e
+ * 
+ * NOTA: Usa new Function() pero es seguro porque:
+ * 1. Caracteres limitados a whitelist
+ * 2. Input solo de formularios UI
+ * 3. Máximo 200 caracteres
+ * 4. Ejecución en "use strict"
+ * 
+ * @param {string} expr - Expresión matemática (máx 200 chars)
+ * @returns {{fn: Function|null, error: string|null}}
+ * @example
+ * const { fn } = parseFunction("x^2 + 3*x - 2");
+ * if (fn) console.log(fn(2));  // 8
+ */
 export function parseFunction(expr) {
+  // Validar longitud
+  if (!expr || expr.length > 200) {
+    return { fn: null, error: "Función inválida. Revisá la sintaxis." };
+  }
+
   // Reemplaza notación matemática común a JS válido
   const sanitized = expr
     .replace(/\^/g, "**")
@@ -26,19 +51,41 @@ export function parseFunction(expr) {
   try {
     // eslint-disable-next-line no-new-func
     const fn = new Function("x", `"use strict"; return (${sanitized});`);
-    fn(1); // test
+    // Test con x=1 para validar
+    const testVal = fn(1);
+    if (!Number.isFinite(testVal)) {
+      throw new Error("Invalid return type");
+    }
     return { fn, error: null };
   } catch (e) {
+    // No exponer detalles internos
     return { fn: null, error: "Función inválida. Revisá la sintaxis." };
   }
 }
 
-// Derivada numérica (diferencias centrales)
+/**
+ * Calcula derivada numérica usando diferencias centrales.
+ * f'(x) ≈ [f(x+h) - f(x-h)] / (2h)
+ * Usada internamente en Newton-Raphson.
+ * @private No usar directamente como función pública
+ */
 function derivative(f, x, h = 1e-7) {
   return (f(x + h) - f(x - h)) / (2 * h);
 }
 
-// ─── 1. BISECCIÓN ─────────────────────────────────────────────────────────────
+/**
+ * Método de Bisección para encontrar raíces.
+ * 
+ * Divide el intervalo [a,b] a la mitad repetidamente.
+ * REQUIERE: f(a)·f(b) < 0 (cambio de signo en extremos)
+ * Convergencia: Garantizada pero lenta (lineal)
+ * 
+ * @param {string} expr - Expresión matemática f(x)
+ * @param {number|string} a - Extremo izquierdo del intervalo
+ * @param {number|string} b - Extremo derecho del intervalo
+ * @param {number} [tol=1e-6] - Tolerancia de error relativo
+ * @returns {Object} {iterations: Array, root: number, converged: boolean, totalIter: number, error?: string}
+ */
 export function biseccion(expr, a, b, tol = 1e-6) {
   const { fn: f, error } = parseFunction(expr);
   if (error) return { error };
@@ -75,7 +122,20 @@ export function biseccion(expr, a, b, tol = 1e-6) {
   return { iterations, root: +(( a + b) / 2).toFixed(8), converged: false, totalIter: MAX_ITER };
 }
 
-// ─── 2. REGLA FALSA ───────────────────────────────────────────────────────────
+/**
+ * Método de Regla Falsa (interpolación lineal).
+ * 
+ * Similar a bisección pero usa interpolación lineal para estimar c.
+ * Converge más rápido que bisección en funciones suaves.
+ * REQUIERE: f(a)·f(b) < 0
+ * Nota: Puede tener convergencia unilateral (un extremo fijo muchas iteraciones)
+ * 
+ * @param {string} expr - Expresión matemática f(x)
+ * @param {number|string} a - Extremo izquierdo
+ * @param {number|string} b - Extremo derecho
+ * @param {number} [tol=1e-6] - Tolerancia de error relativo
+ * @returns {Object} {iterations, root, converged, totalIter, error?}
+ */
 export function reglaFalsa(expr, a, b, tol = 1e-6) {
   const { fn: f, error } = parseFunction(expr);
   if (error) return { error };
@@ -112,7 +172,18 @@ export function reglaFalsa(expr, a, b, tol = 1e-6) {
   return { iterations, root: null, converged: false, totalIter: MAX_ITER };
 }
 
-// ─── 3. NEWTON-RAPHSON ────────────────────────────────────────────────────────
+/**
+ * Método Newton-Raphson (método de la tangente).
+ * 
+ * Usa derivada numérica f'(x) para convergencia muy rápida (cuadrática).
+ * x₀ debe estar CERCA de la raíz. Falla si f'(x) ≈ 0.
+ * Convergencia: Cuadrática (muy rápido cerca de la raíz)
+ * 
+ * @param {string} expr - Expresión matemática f(x)
+ * @param {number|string} x0 - Punto inicial (debe estar cercano a la raíz)
+ * @param {number} [tol=1e-6] - Tolerancia de error relativo
+ * @returns {Object} {iterations, root, converged, totalIter, error?}
+ */
 export function newtonRaphson(expr, x0, tol = 1e-6) {
   const { fn: f, error } = parseFunction(expr);
   if (error) return { error };
@@ -127,7 +198,10 @@ export function newtonRaphson(expr, x0, tol = 1e-6) {
     const fx = f(x);
     const fpx = derivative(f, x);
 
-    if (Math.abs(fpx) < 1e-12) return { error: "Derivada ≈ 0. El método no puede continuar en x = " + x.toFixed(4) };
+    if (Math.abs(fpx) < 1e-12) {
+      // No exponer valor de x al usuario - security measure
+      return { error: "La derivada es muy pequeña en este punto. Intentá con otro x₀." };
+    }
 
     const x1 = x - fx / fpx;
     const err = Math.abs((x1 - x) / x1) * 100;
@@ -151,7 +225,19 @@ export function newtonRaphson(expr, x0, tol = 1e-6) {
   return { iterations, root: +x.toFixed(8), converged: false, totalIter: MAX_ITER };
 }
 
-// ─── 4. SECANTE ───────────────────────────────────────────────────────────────
+/**
+ * Método de la Secante.
+ * 
+ * Aproxima la derivada usando dos puntos sin calcular f'(x) analíticamente.
+ * Convergencia: Superlineal (orden ≈ 1.618, número áureo)
+ * Requiere dos puntos iniciales x₀ y x₁.
+ * 
+ * @param {string} expr - Expresión matemática f(x)
+ * @param {number|string} x0 - Primer punto inicial
+ * @param {number|string} x1 - Segundo punto inicial
+ * @param {number} [tol=1e-6] - Tolerancia de error relativo
+ * @returns {Object} {iterations, root, converged, totalIter, error?}
+ */
 export function secante(expr, x0, x1, tol = 1e-6) {
   const { fn: f, error } = parseFunction(expr);
   if (error) return { error };
@@ -189,7 +275,18 @@ export function secante(expr, x0, x1, tol = 1e-6) {
   return { iterations, root: +xCurr.toFixed(8), converged: false, totalIter: MAX_ITER };
 }
 
-// ─── 5. PUNTO FIJO ────────────────────────────────────────────────────────────
+/**
+ * Método de Punto Fijo.
+ * 
+ * Itera xₙ₊₁ = g(xₙ) para converger a un punto fijo de g.
+ * Convergencia depende de |g'(x)| < 1 en el entorno de la raíz.
+ * Requiere reformular f(x)=0 como x=g(x) manualmente.
+ * 
+ * @param {string} exprG - Expresión de g(x), ejemplo: "sqrt(x + 2)" para x²-x-2=0
+ * @param {number|string} x0 - Punto inicial
+ * @param {number} [tol=1e-6] - Tolerancia de error relativo
+ * @returns {Object} {iterations, root, converged, totalIter, error?}
+ */
 export function puntoFijo(exprG, x0, tol = 1e-6) {
   const { fn: g, error } = parseFunction(exprG);
   if (error) return { error };
@@ -202,9 +299,14 @@ export function puntoFijo(exprG, x0, tol = 1e-6) {
 
   for (let i = 1; i <= MAX_ITER; i++) {
     let gx;
-    try { gx = g(x); } catch { return { error: "Error al evaluar g(x) en x = " + x }; }
+    try { gx = g(x); } catch { 
+      return { error: "Error al evaluar g(x). Revisá la expresión." }; 
+    }
 
-    if (!isFinite(gx)) return { error: `g(x) diverge en iteración ${i}. Revisá g(x).` };
+    if (!isFinite(gx)) {
+      // No exponer número de iteración - security measure
+      return { error: "El método diverge. Intentá reformular g(x) o elegir otro x₀." };
+    }
 
     const err = Math.abs((gx - x) / gx) * 100;
 
@@ -227,8 +329,30 @@ export function puntoFijo(exprG, x0, tol = 1e-6) {
   return { iterations, root: +x.toFixed(8), converged: false, totalIter: MAX_ITER };
 }
 
-// ─── Datos para graficar f(x) ─────────────────────────────────────────────────
+/**
+ * Genera puntos para graficar una función en un rango.
+ * 
+ * Valida inputs, limita rango y cantidad de puntos.
+ * Returns array con {x, y} donde y puede ser null si f(x) diverge.
+ * 
+ * @param {string} expr - Expresión matemática f(x)
+ * @param {number} xMin - Mínimo del rango X (debe ser < xMax)
+ * @param {number} xMax - Máximo del rango X
+ * @param {number} [n=200] - Cantidad de puntos (limitado: 10-500)
+ * @returns {Array<{x: number, y: number|null}>}
+ */
 export function getPoints(expr, xMin, xMax, n = 200) {
+  // Validar y convertir inputs
+  xMin = parseFloat(xMin);
+  xMax = parseFloat(xMax);
+  n = parseInt(n);
+  
+  // Security validations: prevent DOS attacks
+  if (isNaN(xMin) || isNaN(xMax)) return [];
+  if (xMin >= xMax) return [];
+  if (Math.abs(xMax - xMin) > 1e6) return []; // Prevenir rango infinito
+  if (n < 10 || n > 500) n = 200; // Limitar cantidad de puntos
+  
   const { fn: f, error } = parseFunction(expr);
   if (error) return [];
 
@@ -237,8 +361,11 @@ export function getPoints(expr, xMin, xMax, n = 200) {
     const x = xMin + (i * (xMax - xMin)) / n;
     try {
       const y = f(x);
-      pts.push({ x: +x.toFixed(3), y: isFinite(y) && Math.abs(y) < 1e5 ? +y.toFixed(5) : null });
+      // Solo incluir valores finitos y en rango razonable para gráficos
+      const safeY = (isFinite(y) && Math.abs(y) < 1e8) ? +y.toFixed(5) : null;
+      pts.push({ x: +x.toFixed(3), y: safeY });
     } catch {
+      // Si f(x) lanza error, mark como null (discontinuidad)
       pts.push({ x: +x.toFixed(3), y: null });
     }
   }
