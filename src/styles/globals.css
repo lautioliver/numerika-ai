@@ -49,6 +49,39 @@ body {
   animation: fadeUp 0.35s 0.08s ease both;
 }
 
+/* ─── RESPONSIVE BREAKPOINTS ─────────────────────────────────────────────── */
+/* Mobile: 375px - 480px */
+/* Tablet: 481px - 768px */
+/* Desktop: 769px+ */
+
+@media (max-width: 768px) {
+  :root {
+    font-size: 14px;
+  }
+
+  body {
+    font-size: 13px;
+  }
+
+  .app {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    font-size: 13px;
+  }
+
+  body {
+    font-size: 12px;
+  }
+
+  .app {
+    font-size: 12px;
+  }
+}
+
 .fade-up-3 {
   animation: fadeUp 0.35s 0.16s ease both;
 }

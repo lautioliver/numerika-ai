@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { InteractiveChart } from "../components/InteractiveChart";
 import { GuideAccordion } from "../components/GuideAccordion";
 import { Field } from "../components/Field";
@@ -93,6 +93,13 @@ export function SolverPage({ activeMethod = "biseccion", setActiveMethod, onCalc
   });
   const [result, setResult] = useState(null);
   const [calcErr, setCalcErr] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const method = METHODS.find((m) => m.id === mid);
   const set = (k, v) => setVals((p) => ({ ...p, [k]: v }));
@@ -131,7 +138,7 @@ export function SolverPage({ activeMethod = "biseccion", setActiveMethod, onCalc
   }, [graphExpr, vals.a, vals.b, vals.x0, mid]);
 
   return (
-    <div style={{ fontFamily: "'DM Mono',monospace", color: C.dark, background: C.bg, minHeight: "100vh", padding: "32px 24px" }}>
+    <div style={{ fontFamily: "'DM Mono',monospace", color: C.dark, background: C.bg, minHeight: "100vh", padding: isMobile ? "20px 16px" : "32px 24px", maxWidth: "1200px", margin: "0 auto" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap');`}</style>
 
       {/* Header */}
@@ -140,7 +147,7 @@ export function SolverPage({ activeMethod = "biseccion", setActiveMethod, onCalc
           <span style={{ display: "inline-block", width: 18, height: 1, background: C.teal }} />
           Solver
         </div>
-        <h2 style={{ fontFamily: "'DM Serif Display',serif", fontSize: 26, fontWeight: 400, color: C.dark, margin: 0 }}>
+        <h2 style={{ fontFamily: "'DM Serif Display',serif", fontSize: isMobile ? 20 : 26, fontWeight: 400, color: C.dark, margin: 0 }}>
           Calculá <em style={{ color: C.teal, fontStyle: "italic" }}>paso a paso</em>
         </h2>
       </div>
@@ -191,7 +198,7 @@ export function SolverPage({ activeMethod = "biseccion", setActiveMethod, onCalc
       </div>
 
       {/* Grid — config | results */}
-      <div style={{ display: "grid", gridTemplateColumns: "250px 1fr", gap: 16, alignItems: "start" }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "250px 1fr", gap: 16, alignItems: "start" }}>
         {/* Config */}
         <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
           <div style={{ padding: "13px 18px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>

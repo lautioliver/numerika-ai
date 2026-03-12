@@ -58,3 +58,51 @@
   padding: 4px 10px;
   border-radius: 20px;
 }
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .nav {
+    padding: 0 28px;
+    height: 56px;
+  }
+
+  .nav-logo {
+    font-size: 16px;
+  }
+
+  .nav-links {
+    gap: 20px;
+  }
+
+  .nav-links li {
+    font-size: 9px;
+    letter-spacing: 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav {
+    padding: 0 16px;
+    height: 52px;
+  }
+
+  .nav-logo {
+    font-size: 14px;
+  }
+
+  .nav-links {
+    gap: 12px;
+  }
+
+  .nav-links li {
+    font-size: 8px;
+    letter-spacing: 1.5px;
+    padding: 2px 0;
+  }
+
+  .nav-badge {
+    font-size: 7px;
+    padding: 3px 8px;
+  }
+}

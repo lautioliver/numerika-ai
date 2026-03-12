@@ -303,3 +303,271 @@ small {
   margin-top: 4px;
   letter-spacing: 0.5px;
 }
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .solver {
+    max-width: 100%;
+    padding: 32px 24px 60px;
+  }
+
+  .page-header {
+    margin-bottom: 24px;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .page-eyebrow {
+    font-size: 9px;
+    gap: 10px;
+  }
+
+  .page-eyebrow::before {
+    width: 16px;
+  }
+
+  .solver-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .method-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .panel {
+    border-radius: 12px;
+  }
+
+  .panel-header {
+    padding: 14px 18px;
+  }
+
+  .panel-body {
+    padding: 16px;
+  }
+
+  .field {
+    margin-bottom: 14px;
+  }
+
+  .field label {
+    font-size: 8px;
+    margin-bottom: 6px;
+  }
+
+  .field input {
+    padding: 9px 11px;
+    font-size: 12px;
+  }
+
+  .iter-table {
+    font-size: 10px;
+  }
+
+  .iter-table th {
+    font-size: 8px;
+    padding: 6px 7px;
+  }
+
+  .iter-table td {
+    padding: 6px 7px;
+  }
+
+  .graph-area {
+    height: 160px;
+  }
+
+  .result-placeholder {
+    min-height: 240px;
+  }
+}
+
+@media (max-width: 480px) {
+  .solver {
+    max-width: 100%;
+    padding: 20px 16px 40px;
+  }
+
+  .page-header {
+    margin-bottom: 18px;
+  }
+
+  .page-title {
+    font-size: 20px;
+    line-height: 1.2;
+  }
+
+  .page-eyebrow {
+    font-size: 8px;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .page-eyebrow::before {
+    width: 12px;
+  }
+
+  .solver-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .method-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    border-radius: 10px;
+  }
+
+  .panel-header {
+    padding: 12px 14px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .panel-title {
+    font-size: 8px;
+    letter-spacing: 2px;
+  }
+
+  .panel-body {
+    padding: 12px;
+  }
+
+  .field {
+    margin-bottom: 12px;
+  }
+
+  .field label {
+    font-size: 7px;
+    letter-spacing: 1.5px;
+    margin-bottom: 5px;
+  }
+
+  .field input {
+    padding: 8px 10px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+
+  .field-row,
+  .method-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .method-pill {
+    padding: 9px 10px;
+    font-size: 11px;
+  }
+
+  .method-pill .pill-name {
+    font-size: 10px;
+  }
+
+  .method-pill .pill-type {
+    font-size: 8px;
+  }
+
+  .divider {
+    gap: 10px;
+    margin: 14px 0;
+  }
+
+  .divider span {
+    font-size: 8px;
+  }
+
+  .iter-table {
+    font-size: 9px;
+    overflow-x: auto;
+    display: block;
+  }
+
+  .iter-table thead,
+  .iter-table tbody,
+  .iter-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .iter-table tr {
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+  }
+
+  .iter-table th {
+    display: none;
+  }
+
+  .iter-table td {
+    padding: 4px 0;
+    text-align: right;
+    position: relative;
+    padding-left: 45%;
+  }
+
+  .status-bar {
+    gap: 6px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+  }
+
+  .status-dot {
+    width: 5px;
+    height: 5px;
+  }
+
+  .status-text {
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+
+  .graph-area {
+    height: 140px;
+    margin-bottom: 12px;
+  }
+
+  .graph-label {
+    font-size: 8px;
+    top: 10px;
+    left: 10px;
+  }
+
+  .ai-insight {
+    padding: 10px 12px;
+    margin-top: 12px;
+  }
+
+  .ai-label {
+    font-size: 8px;
+    margin-bottom: 4px;
+  }
+
+  .ai-text {
+    font-size: 10px;
+    line-height: 1.6;
+  }
+
+  .result-placeholder {
+    min-height: 200px;
+    gap: 8px;
+  }
+
+  .result-placeholder p {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+  }
+
+  .result-placeholder svg {
+    width: 20px;
+    height: 20px;
+  }
+}
