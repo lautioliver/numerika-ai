@@ -1,6 +1,4 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap');
-@import 'tailwindcss';
-@import 'tailwind-animations';
 
 * {
   box-sizing: border-box;
@@ -44,11 +42,11 @@ body {
 }
 
 .fade-up {
-  animation: fadeUp 0.35s ease forwards;
+  animation: fadeUp 0.50s ease forwards;
 }
 
 .fade-up-2 {
-  animation: fadeUp 0.35s 0.08s ease both;
+  animation: fadeUp 0.50s 0.08s ease both;
 }
 
 /* ─── RESPONSIVE BREAKPOINTS ─────────────────────────────────────────────── */
