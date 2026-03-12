@@ -34,7 +34,10 @@ export function Field({ label, value, onChange, placeholder, hint }) {
 
   // Validar input - solo permitir caracteres seguros
   const validateInput = useCallback((newValue) => {
-    if (!newValue || newValue.length > 200) return false;
+    // Permitir strings vacíos y máximo 200 caracteres
+    if (newValue.length > 200) return false;
+    // Si es vacío, permitir
+    if (newValue.length === 0) return true;
     // Permitir: x, dígitos, operadores, paréntesis, espacios, letras (para funciones)
     return /^[x\d\+\-\*\/\(\)\^\.\s\w]*$/.test(newValue);
   }, []);

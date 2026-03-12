@@ -84,6 +84,10 @@ export default function Solver() {
   const set = (k, v) => setValues(prev => ({ ...prev, [k]: v }));
 
   const handleRun = () => {
+    if (!values.fx || values.fx.trim() === "") {
+      setCalcError("Ingresá una función f(x) para continuar.");
+      return;
+    }
     setCalcError(null);
     setResult(null);
     const res = method.run(values);

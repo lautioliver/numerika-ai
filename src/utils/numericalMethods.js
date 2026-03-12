@@ -169,7 +169,7 @@ export function reglaFalsa(expr, a, b, tol = 1e-6) {
     prev_c = c;
   }
 
-  return { iterations, root: null, converged: false, totalIter: MAX_ITER };
+  return { iterations, root: +((a + b) / 2).toFixed(8), converged: false, totalIter: MAX_ITER };
 }
 
 /**

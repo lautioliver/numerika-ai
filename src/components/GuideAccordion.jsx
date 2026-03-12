@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { parseFunction } from "../utils/numericalMethods";
 
 const C = {
   cream: "#E3DFBA",
@@ -18,14 +19,15 @@ const C = {
  * 
  * Componente educativo que explica cómo funciona cada método:
  * - Pasos conceptuales y matemáticos
- * - Ejemplos con valores numéricos
+ * - Ejemplos dinámicos basados en los valores del usuario
  * - Código terminal-like para visual appeal
  * 
  * @param {Object} props
  * @param {string} props.methodId - ID del método (biseccion, reglafalsa, newton, secante, puntofijo)
+ * @param {Object} props.values - Objeto con valores del usuario (fx, gx, x0, a, b, x1sec, tol)
  * 
  * @example
- * <GuideAccordion methodId="newton" />
+ * <GuideAccordion methodId="newton" values={{ fx: "x^2 - 2", x0: "1.5", tol: "0.0001" }} />
  */
 
 const GUIDES = {
@@ -146,9 +148,92 @@ const GUIDES = {
   },
 };
 
-export function GuideAccordion({ methodId }) {
+export function GuideAccordion({ methodId, values = {} }) {
   const [open, setOpen] = useState(false);
   const guide = GUIDES[methodId];
+
+  // Generar ejemplo dinámico basado en los valores del usuario
+  const dynamicExample = useMemo(() => {
+    if (!values || Object.keys(values).length === 0) {
+      return guide.example;
+    }
+
+    try {
+      const { fx, gx, x0, a, b, x1sec } = values;
+      const expr = methodId === "puntofijo" ? gx : fx;
+
+      if (!expr || expr.length === 0) {
+        return guide.example;
+      }
+
+      const { fn: f } = parseFunction(expr);
+      if (!f) return guide.example;
+
+      let exampleText = "";
+
+      if (methodId === "biseccion" && a && b) {
+        const aNum = parseFloat(a);
+        const bNum = parseFloat(b);
+        if (isNaN(aNum) || isNaN(bNum)) return guide.example;
+
+        const fa = f(aNum);
+        const fb = f(bNum);
+        const c1 = (aNum + bNum) / 2;
+        const fc1 = f(c1);
+        const c2 = (c1 + bNum) / 2;
+        const fc2 = f(c2);
+
+        exampleText = `f(x) = ${expr},  [a=${aNum}, b=${bNum}]\nf(${aNum}) = ${fa.toFixed(4)}, f(${bNum}) = ${fb.toFixed(4)}\nc₁ = (${aNum}+${bNum})/2 = ${c1.toFixed(4)} → f(${c1.toFixed(4)}) = ${fc1.toFixed(4)}\nc₂ = (${c1.toFixed(4)}+${bNum})/2 = ${c2.toFixed(4)} → f(${c2.toFixed(4)}) = ${fc2.toFixed(4)}\n⋯ proceso continúa hasta converger`;
+      } else if (methodId === "reglafalsa" && a && b) {
+        const aNum = parseFloat(a);
+        const bNum = parseFloat(b);
+        if (isNaN(aNum) || isNaN(bNum)) return guide.example;
+
+        const fa = f(aNum);
+        const fb = f(bNum);
+        const c1 = bNum - (fb * (bNum - aNum)) / (fb - fa);
+        const fc1 = f(c1);
+
+        exampleText = `f(x) = ${expr},  [a=${aNum}, b=${bNum}]\nf(${aNum}) = ${fa.toFixed(4)}, f(${bNum}) = ${fb.toFixed(4)}\nc₁ = ${bNum} − f(${bNum})·(${bNum}−${aNum})/(f(${bNum})−f(${aNum}))\nc₁ ≈ ${c1.toFixed(4)} → f(${c1.toFixed(4)}) = ${fc1.toFixed(4)}\n⋯ converge mediante interpolación lineal`;
+      } else if (methodId === "newton" && x0) {
+        const x0Num = parseFloat(x0);
+        if (isNaN(x0Num)) return guide.example;
+
+        const h = 1e-7;
+        const fx0 = f(x0Num);
+        const fpx0 = (f(x0Num + h) - f(x0Num - h)) / (2 * h);
+        const x1 = x0Num - fx0 / fpx0;
+        const fx1 = f(x1);
+        const fpx1 = (f(x1 + h) - f(x1 - h)) / (2 * h);
+
+        exampleText = `f(x) = ${expr},  x₀ = ${x0Num}\nf(${x0Num}) = ${fx0.toFixed(4)}, f′(${x0Num}) ≈ ${fpx0.toFixed(4)}\nx₁ = ${x0Num} − ${fx0.toFixed(4)}/${fpx0.toFixed(4)} ≈ ${x1.toFixed(4)}\nf(${x1.toFixed(4)}) = ${fx1.toFixed(4)}, f′(${x1.toFixed(4)}) ≈ ${fpx1.toFixed(4)}\n⋯ converge muy rápido (convergencia cuadrática)`;
+      } else if (methodId === "secante" && x0 && x1sec) {
+        const x0Num = parseFloat(x0);
+        const x1Num = parseFloat(x1sec);
+        if (isNaN(x0Num) || isNaN(x1Num)) return guide.example;
+
+        const fx0 = f(x0Num);
+        const fx1 = f(x1Num);
+        const x2 = x1Num - (fx1 * (x1Num - x0Num)) / (fx1 - fx0);
+        const fx2 = f(x2);
+
+        exampleText = `f(x) = ${expr},  x₀=${x0Num}, x₁=${x1Num}\nf(${x0Num})=${fx0.toFixed(4)},  f(${x1Num})=${fx1.toFixed(4)}\nx₂ = ${x1Num} − ${fx1.toFixed(4)}·(${x1Num}−${x0Num})/(${fx1.toFixed(4)}−${fx0.toFixed(4)})\nx₂ ≈ ${x2.toFixed(4)} → f(${x2.toFixed(4)}) = ${fx2.toFixed(4)}\n⋯ converge con orden superllineal (φ ≈ 1.618)`;
+      } else if (methodId === "puntofijo" && x0) {
+        const x0Num = parseFloat(x0);
+        if (isNaN(x0Num)) return guide.example;
+
+        const x1 = f(x0Num);
+        const x2 = f(x1);
+        const x3 = f(x2);
+
+        exampleText = `f(x) = ${expr},  x₀ = ${x0Num}\nx₁ = g(${x0Num}) = ${x1.toFixed(4)}\nx₂ = g(${x1.toFixed(4)}) = ${x2.toFixed(4)}\nx₃ = g(${x2.toFixed(4)}) = ${x3.toFixed(4)}\n⋯ proceso continúa hasta convergencia o divergencia`;
+      }
+
+      return exampleText || guide.example;
+    } catch (e) {
+      return guide.example;
+    }
+  }, [values, methodId, guide]);
 
   return (
     <div style={{ border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", marginTop: 20 }}>
@@ -222,10 +307,10 @@ export function GuideAccordion({ methodId }) {
           <div style={{ background: "#1e2826", borderRadius: 10, padding: "16px 18px" }}>
             <div style={{ fontSize: 9, letterSpacing: "2px", textTransform: "uppercase", color: C.tealLt, marginBottom: 10, display: "flex", alignItems: "center", gap: 7 }}>
               <span style={{ width: 4, height: 4, borderRadius: "50%", background: C.tealLt, display: "inline-block" }} />
-              Ejemplo paso a paso
+              {values && Object.keys(values).length > 0 ? "Tu ejemplo personalizado" : "Ejemplo paso a paso"}
             </div>
             <pre style={{ margin: 0, fontFamily: "'DM Mono',monospace", fontSize: 11, color: C.sage, lineHeight: 1.9, whiteSpace: "pre-wrap" }}>
-              {guide.example}
+              {dynamicExample}
             </pre>
           </div>
         </div>

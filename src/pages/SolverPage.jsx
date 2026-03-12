@@ -6,7 +6,7 @@ import {
   parseFunction,
   biseccion,
   reglaFalsa,
-  newtonRaphson,
+  newtonRaphson,  
   secante,
   puntoFijo,
   getPoints,
@@ -80,7 +80,7 @@ const METHODS = [
 ];
 
 // ─── App ──────────────────────────────────────────────────────────────────────
-export function SolverPage({ activeMethod = "biseccion", setActiveMethod, onCalculate }) {
+export const SolverPage = ({ activeMethod, setActiveMethod, calculated, onCalculate, funcExpr, onFuncChange }) => {
   const [mid, setMid] = useState(activeMethod);
   const [vals, setVals] = useState({
     fx: "x^2 - x - 2",
@@ -119,7 +119,7 @@ export function SolverPage({ activeMethod = "biseccion", setActiveMethod, onCalc
   const graphExpr = mid === "puntofijo" ? vals.gx : vals.fx;
   const points = useMemo(() => {
     let xMin = -4,
-      xMax = 6;
+        xMax = 6;
     if (method.type === "cerrado") {
       const a = parseFloat(vals.a),
         b = parseFloat(vals.b);
@@ -340,7 +340,7 @@ export function SolverPage({ activeMethod = "biseccion", setActiveMethod, onCalc
             )}
 
             {/* Guide accordion — siempre visible abajo */}
-            <GuideAccordion methodId={mid} />
+            <GuideAccordion methodId={mid} values={vals} />
           </div>
         </div>
       </div>

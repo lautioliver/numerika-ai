@@ -18,6 +18,7 @@ export default function NumerikaApp() {
   const [page, setPage] = useState("home");
   const [activeMethod, setActiveMethod] = useState("biseccion");
   const [calculated, setCalculated] = useState(false);
+  const [funcExpr, setFuncExpr] = useState("x^2 - x - 2"); // ← AGREGAR
 
   useEffect(() => {
     const handleMethodChange = (e) => {
@@ -40,11 +41,17 @@ export default function NumerikaApp() {
           setActiveMethod={setActiveMethod}
           calculated={calculated}
           onCalculate={() => setCalculated(true)}
+          funcExpr={funcExpr}           // ← Agregado 12/03
+          onFuncChange={setFuncExpr}    // ← Agregado 12/03
         />
       )}
 
       {page === "metodos" && (
-        <MethodsPage onMethodSelect={setActiveMethod} onPageChange={setPage} />
+        <MethodsPage
+          onMethodSelect={setActiveMethod}
+          onPageChange={setPage}
+          funcExpr={funcExpr}    // ← Agregado 12/03
+        />
       )}
 
       <Footer />
