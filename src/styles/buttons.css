@@ -1,3 +1,5 @@
+
+/** Botones principales CTA — Call To Action */
 .btn-cta {
   background: var(--dark);
   color: var(--cream);
@@ -10,12 +12,22 @@
   text-transform: uppercase;
   cursor: pointer;
   transition: background 0.2s;
+  /* Touch-friendly: mínimo 44x44px */
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-cta:hover {
   background: #2d3a38;
 }
 
+.btn-cta:active {
+  transform: scale(0.98);
+}
+
+/* Variante outline para botones secundarios */
 .btn-cta.outline {
   background: transparent;
   color: var(--muted);
@@ -27,6 +39,7 @@
   color: var(--teal);
 }
 
+/** Botón de ejecución (Run/Calcular) — ancho completo */
 .btn-run {
   width: 100%;
   background: var(--dark);
@@ -39,9 +52,60 @@
   letter-spacing: 2px;
   text-transform: uppercase;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s, transform 0.1s;
+  min-height: 44px;
+  font-weight: 500;
 }
 
-.btn-run:hover {
+.btn-run:hover:not(:disabled) {
   opacity: 0.85;
+}
+
+.btn-run:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Botones deshabilitados */
+.btn-cta:disabled,
+.btn-run:disabled {
+  cursor: not-allowed;
+  background: #999;
+  opacity: 0.6;
+}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .btn-cta {
+    padding: 11px 18px;
+    font-size: 9px;
+    min-height: 42px;
+  }
+
+  .btn-run {
+    padding: 11px;
+    font-size: 9px;
+    min-height: 42px;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn-cta {
+    padding: 10px 14px;
+    font-size: 8px;
+    letter-spacing: 1.5px;
+    min-height: 40px;
+    width: 100%;
+  }
+
+  .btn-cta.outline {
+    width: auto;
+  }
+
+  .btn-run {
+    padding: 10px;
+    font-size: 8px;
+    letter-spacing: 1.5px;
+    min-height: 40px;
+  }
 }

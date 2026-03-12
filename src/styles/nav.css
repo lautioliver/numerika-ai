@@ -1,3 +1,7 @@
+
+/**
+ * Navigation — Barra de navegación sticky en la parte superior
+ */
 .nav {
   display: flex;
   align-items: center;
@@ -8,6 +12,7 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  gap: 24px;
 }
 
 .nav-logo {
@@ -16,6 +21,13 @@
   color: var(--cream);
   letter-spacing: 1px;
   cursor: pointer;
+  transition: color 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.nav-logo:hover {
+  color: var(--teal-lt);
 }
 
 .nav-logo span {
@@ -27,6 +39,8 @@
   display: flex;
   gap: 36px;
   list-style: none;
+  flex: 1;
+  justify-content: center;
 }
 
 .nav-links li {
@@ -37,7 +51,8 @@
   cursor: pointer;
   transition: all 0.2s;
   padding: 4px 0;
-  border-bottom: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
 }
 
 .nav-links li:hover {
@@ -57,6 +72,75 @@
   border: 1px solid #2e3836;
   padding: 4px 10px;
   border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .nav {
+    padding: 0 28px;
+    height: 56px;
+    gap: 16px;
+  }
+
+  .nav-logo {
+    font-size: 16px;
+  }
+
+  .nav-links {
+    gap: 20px;
+  }
+
+  .nav-links li {
+    font-size: 9px;
+    letter-spacing: 2px;
+    padding: 3px 0;
+  }
+
+  .nav-badge {
+    font-size: 8px;
+    padding: 3px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav {
+    padding: 0 16px;
+    height: 52px;
+    gap: 12px;
+  }
+
+  .nav-logo {
+    font-size: 14px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Hide links on very small screens, show as collapsed */
+  .nav-links {
+    gap: 12px;
+    font-size: 8px;
+  }
+
+  .nav-links li {
+    font-size: 7px;
+    letter-spacing: 1.5px;
+    padding: 2px 0;
+    padding-left: 6px;
+    padding-right: 6px;
+    border-bottom-width: 1px;
+  }
+
+  .nav-links li.active {
+    border-bottom-width: 1px;
+  }
+
+  .nav-badge {
+    font-size: 7px;
+    padding: 2px 6px;
+    letter-spacing: 1px;
+  }
 }
 
 /* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */

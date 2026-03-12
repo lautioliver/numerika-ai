@@ -55,30 +55,66 @@ body {
 /* Desktop: 769px+ */
 
 @media (max-width: 768px) {
+  * {
+    /* Prevent horizontal scroll on tablet */
+    max-width: 100%;
+  }
+
   :root {
     font-size: 14px;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     font-size: 13px;
+    line-height: 1.5;
+    letter-spacing: 0.4px;
+    overflow-x: hidden;
   }
 
   .app {
     font-size: 13px;
+    overflow-x: hidden;
   }
 }
 
 @media (max-width: 480px) {
+  * {
+    /* Prevent horizontal scroll on mobile */
+    max-width: 100%;
+  }
+
   :root {
     font-size: 13px;
   }
 
+  html {
+    scroll-behavior: auto;
+  }
+
   body {
     font-size: 12px;
+    line-height: 1.6;
+    letter-spacing: 0.3px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  body button,
+  body [role="button"],
+  body a {
+    -webkit-user-select: auto;
+    user-select: auto;
   }
 
   .app {
     font-size: 12px;
+    overflow-x: hidden;
+    position: relative;
   }
 }
 

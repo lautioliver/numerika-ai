@@ -362,6 +362,8 @@ small {
   .field input {
     padding: 9px 11px;
     font-size: 12px;
+    border-radius: 6px;
+    min-height: 38px;
   }
 
   .iter-table {
@@ -405,6 +407,7 @@ small {
     font-size: 8px;
     gap: 8px;
     margin-bottom: 8px;
+    letter-spacing: 2px;
   }
 
   .page-eyebrow::before {
@@ -414,6 +417,19 @@ small {
   .solver-grid {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+
+  /* Stack method tabs vertically on mobile */
+  .method-buttons-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .method-buttons-row button {
+    width: 100%;
+    text-align: left;
   }
 
   .method-grid {
@@ -454,6 +470,7 @@ small {
     padding: 8px 10px;
     font-size: 12px;
     border-radius: 6px;
+    min-height: 36px;
   }
 
   .field-row,
@@ -465,6 +482,9 @@ small {
   .method-pill {
     padding: 9px 10px;
     font-size: 11px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
   }
 
   .method-pill .pill-name {
@@ -484,10 +504,12 @@ small {
     font-size: 8px;
   }
 
+  /* Responsive table for mobile */
   .iter-table {
     font-size: 9px;
     overflow-x: auto;
     display: block;
+    width: 100%;
   }
 
   .iter-table thead,
@@ -512,6 +534,16 @@ small {
     text-align: right;
     position: relative;
     padding-left: 45%;
+    display: block;
+  }
+
+  .iter-table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+    font-size: 8px;
+    text-transform: uppercase;
   }
 
   .status-bar {

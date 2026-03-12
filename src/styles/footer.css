@@ -1,8 +1,15 @@
+
+/**
+ * Footer — Pie de página con información de branding y derechos
+ */
 .footer {
   border-top: 1px solid var(--border);
   padding: 24px 48px;
   display: flex;
   justify-content: space-between;
+  background: var(--surface);
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .footer span {
@@ -10,4 +17,36 @@
   letter-spacing: 1.5px;
   text-transform: uppercase;
   color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .footer {
+    padding: 18px 28px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .footer span {
+    font-size: 9px;
+    letter-spacing: 1.2px;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer {
+    padding: 14px 16px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .footer span {
+    font-size: 8px;
+    letter-spacing: 1px;
+    width: 100%;
+  }
 }

@@ -1,3 +1,7 @@
+
+/**
+ * Cards — Contenedores para información (Visión, Misión, Valor, Usuario)
+ */
 .cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -10,11 +14,16 @@
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 28px;
-  transition: box-shadow 0.2s;
+  transition: box-shadow 0.2s, transform 0.2s;
+  cursor: default;
 }
 
 .card:hover {
   box-shadow: 0 4px 20px rgba(108, 189, 181, 0.1);
+}
+
+.card:active {
+  transform: translateY(2px);
 }
 
 .card-tag {
@@ -49,6 +58,7 @@
   color: var(--muted);
 }
 
+/* Color-coded card types */
 .card.vision .card-tag {
   color: var(--teal);
 }
@@ -82,6 +92,72 @@
   background: var(--border);
 }
 
+/* Full-width card (si aplica) */
 .card.full {
   grid-column: 1 / -1;
+}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .cards {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .card {
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  .card-title {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  .card-tag {
+    font-size: 8px;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+
+  .card-body {
+    font-size: 11px;
+    line-height: 1.7;
+  }
+}
+
+@media (max-width: 480px) {
+  .cards {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .card {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .card-title {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .card-tag {
+    font-size: 7px;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+  }
+
+  .card-tag::before {
+    width: 5px;
+    height: 5px;
+  }
+
+  .card-body {
+    font-size: 10px;
+    line-height: 1.6;
+  }
 }
