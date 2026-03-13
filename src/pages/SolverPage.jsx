@@ -10,6 +10,7 @@ import {
   secante,
   puntoFijo,
   getPoints,
+  detectMultipleRoots,
 } from "../utils/numericalMethods";
 
 // ─── Paleta ───────────────────────────────────────────────────────────────────
@@ -134,6 +135,30 @@ export const SolverPage = ({ activeMethod, setActiveMethod, calculated, onCalcul
       setCalcErr(r.error);
       setResult(r);
     } else {
+      // Detectar raíces múltiples si el método usa f(x) y converge
+      if (r.converged && mid !== "puntofijo") {
+        let xMin, xMax;
+        
+        if (method.type === "cerrado") {
+          const a = parseFloat(vals.a);
+          const b = parseFloat(vals.b);
+          if (!isNaN(a) && !isNaN(b)) {
+            xMin = a - Math.abs(b - a) * 0.5;
+            xMax = b + Math.abs(b - a) * 0.5;
+          }
+        } else {
+          const x0 = parseFloat(vals.x0);
+          if (!isNaN(x0)) {
+            xMin = x0 - 10;
+            xMax = x0 + 10;
+          }
+        }
+        
+        if (xMin !== undefined && xMax !== undefined) {
+          r.rootsInfo = detectMultipleRoots(vals.fx, xMin, xMax);
+        }
+      }
+      
       setResult(r);
     }
     
@@ -350,15 +375,59 @@ export const SolverPage = ({ activeMethod, setActiveMethod, calculated, onCalcul
                   </table>
                 </div>
 
-                {/* AI placeholder */}
-                <div style={{ padding: "12px 14px", background: "rgba(200,214,191,0.15)", border: "1px solid rgba(200,214,191,0.4)", borderRadius: 8, marginTop: 16 }}>
-                  <div style={{ fontSize: 9, letterSpacing: "2px", textTransform: "uppercase", color: "#6a8a6a", marginBottom: 5, display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: "50%", background: C.sage, display: "inline-block" }} />
-                    Explicación IA · próximamente
+                {/* Results summary & multiple roots detection */}
+                <div style={{ padding: "12px 14px", background: "rgba(200,214,191,0.15)", border: `1px solid rgba(200,214,191,0.4)`, borderRadius: 8, marginTop: 16 }}>
+                  <div style={{ fontSize: 9, letterSpacing: "2px", textTransform: "uppercase", color: "#6a8a6a", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 13 }}>{result.converged ? "✓" : "⚠"}</span>
+                    {result.converged ? "Convergencia alcanzada" : "No convergió"}
                   </div>
-                  <p style={{ fontSize: 11, color: C.muted, lineHeight: 1.8, fontStyle: "italic", margin: 0 }}>
-                    Aquí aparecerá la explicación generada por IA sobre la convergencia del método y el comportamiento de cada iteración.
+                  <p style={{ fontSize: 11, color: C.muted, lineHeight: 1.8, margin: "0 0 12px 0" }}>
+                    {result.converged
+                      ? `El método ${method.name} convergió en ${result.totalIter} iteración${result.totalIter !== 1 ? "es" : ""} a la raíz x = ${result.root}.`
+                      : `El método alcanzó el máximo de iteraciones sin converger. Intentá ajustar los parámetros iniciales.`}
                   </p>
+
+                  {/* Alert: Multiple roots detected */}
+                  {result.converged && result.rootsInfo?.count > 1 && (
+                    <div style={{
+                      padding: "10px 13px",
+                      background: "rgba(212, 168, 75, 0.08)",
+                      border: "1px solid rgba(212, 168, 75, 0.35)",
+                      borderRadius: 7,
+                      marginTop: 12,
+                    }}>
+                      <div style={{
+                        fontSize: 9, letterSpacing: "2px", textTransform: "uppercase",
+                        color: "#b8860b", marginBottom: 6, display: "flex", alignItems: "center", gap: 6,
+                      }}>
+                        <span style={{ fontSize: 13 }}>⚠</span> Raíces múltiples detectadas
+                      </div>
+                      <p style={{ fontSize: 11, color: C.muted, lineHeight: 1.8, margin: "0 0 8px 0" }}>
+                        El análisis del gráfico sugiere{" "}
+                        <strong style={{ color: C.text }}>
+                          {result.rootsInfo.count} posibles raíces
+                        </strong>{" "}
+                        en el dominio analizado. Solo se encontró la más cercana a tu punto inicial.
+                      </p>
+                      <p style={{ fontSize: 10, color: C.muted, margin: "0 0 6px 0", letterSpacing: "0.3px" }}>
+                        Intervalos sugeridos para explorar:
+                      </p>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        {result.rootsInfo.intervals.map((iv, i) => (
+                          <span key={i} style={{
+                            fontFamily: "'DM Mono', monospace",
+                            fontSize: 10, padding: "4px 10px",
+                            background: "rgba(108,189,181,0.1)",
+                            border: "1px solid rgba(108,189,181,0.3)",
+                            borderRadius: 5, color: C.teal,
+                            whiteSpace: "nowrap",
+                          }}>
+                            [{iv.a}, {iv.b}]
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             )}

@@ -402,3 +402,41 @@ export function getPoints(expr, xMin, xMax, n = 200) {
   }
   return pts;
 }
+
+/**
+ * Detector de raíces múltiples
+ * 
+ * Escanea el rango [xMin, xMax] buscando cambios de signo en f(x).
+ * Cada cambio de signo indica una raíz potencial en ese intervalo.
+ * Educa al usuario sobre la existencia de múltiples soluciones.
+ * 
+ * @param {string} expr - Expresión matemática f(x)
+ * @param {number} xMin - Inicio del rango de búsqueda
+ * @param {number} xMax - Fin del rango de búsqueda
+ * @param {number} [step=0.1] - Tamaño del paso para el escaneo
+ * @returns {Object} {count: number, intervals: Array<{a, b}>}
+ */
+export function detectMultipleRoots(expr, xMin, xMax, step = 0.1) {
+  const { fn: f, error } = parseFunction(expr);
+  if (error) return { count: 0, intervals: [] };
+
+  const intervals = [];
+  let x = xMin;
+
+  while (x < xMax - step) {
+    const x1 = x + step;
+    try {
+      const fa = f(x);
+      const fb = f(x1);
+      // Detectar cambio de signo: indicativo de una raíz en [x, x1]
+      if (isFinite(fa) && isFinite(fb) && fa * fb < 0) {
+        intervals.push({ a: +x.toFixed(2), b: +x1.toFixed(2) });
+      }
+    } catch { 
+      // Si hay error evaluando, saltear este punto
+    }
+    x = x1;
+  }
+
+  return { count: intervals.length, intervals };
+}
