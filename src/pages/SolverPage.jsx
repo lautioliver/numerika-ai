@@ -83,7 +83,7 @@ const METHODS = [
 export const SolverPage = ({ activeMethod, setActiveMethod, calculated, onCalculate, funcExpr, onFuncChange }) => {
   const [mid, setMid] = useState(activeMethod);
   const [vals, setVals] = useState({
-    fx: "x^2 - x - 2",
+    fx: funcExpr || "x^2 - x - 2", // Usar prop como inicial
     a: "1",
     b: "3",
     x0: "1.5",
@@ -95,6 +95,14 @@ export const SolverPage = ({ activeMethod, setActiveMethod, calculated, onCalcul
   const [calcErr, setCalcErr] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
+  // Ocultar resultados cuando calculated cambia a false
+  useEffect(() => {
+    if (!calculated) {
+      setResult(null);
+      setCalcErr(null);
+    }
+  }, [calculated]);
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener("resize", handleResize);
@@ -102,17 +110,33 @@ export const SolverPage = ({ activeMethod, setActiveMethod, calculated, onCalcul
   }, []);
 
   const method = METHODS.find((m) => m.id === mid);
-  const set = (k, v) => setVals((p) => ({ ...p, [k]: v }));
+  const set = (k, v) => {
+    setVals((p) => ({ ...p, [k]: v }));
+    // Cuando cambias fx, notifica al padre Y oculta resultados
+    if (k === "fx" && onFuncChange) {
+      onFuncChange(v);
+    }
+  };
 
   const run = () => {
     setCalcErr(null);
     setResult(null);
     const r = method.run(vals);
+    
+    // Si hay error pero también iteraciones, mostrar ambas
     if (r.error) {
+      // Si solo hay error sin iteraciones, mostrar como error
+      if (!r.iterations || r.iterations.length === 0) {
+        setCalcErr(r.error);
+        return;
+      }
+      // Si hay iteraciones parciales, mostrar resultado con advertencia como error
       setCalcErr(r.error);
-      return;
+      setResult(r);
+    } else {
+      setResult(r);
     }
-    setResult(r);
+    
     if (onCalculate) onCalculate();
   };
 

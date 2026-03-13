@@ -18,11 +18,18 @@ export default function NumerikaApp() {
   const [page, setPage] = useState("home");
   const [activeMethod, setActiveMethod] = useState("biseccion");
   const [calculated, setCalculated] = useState(false);
-  const [funcExpr, setFuncExpr] = useState("x^2 - x - 2"); // ← AGREGAR
+  const [funcExpr, setFuncExpr] = useState("x^2 - x - 2");
+
+  // Actualiza función Y oculta resultados anteriores
+  const handleFuncChange = (newExpr) => {
+    setFuncExpr(newExpr);
+    setCalculated(false); // Obliga a recalcular con nueva función
+  };
 
   useEffect(() => {
     const handleMethodChange = (e) => {
       setActiveMethod(e.detail.methodId);
+      setCalculated(false); // Oculta resultados si cambia método
     };
 
     window.addEventListener("methodChange", handleMethodChange);
@@ -41,8 +48,8 @@ export default function NumerikaApp() {
           setActiveMethod={setActiveMethod}
           calculated={calculated}
           onCalculate={() => setCalculated(true)}
-          funcExpr={funcExpr}           // ← Agregado 12/03
-          onFuncChange={setFuncExpr}    // ← Agregado 12/03
+          funcExpr={funcExpr}
+          onFuncChange={handleFuncChange}
         />
       )}
 

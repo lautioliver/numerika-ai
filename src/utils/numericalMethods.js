@@ -32,37 +32,43 @@ export function parseFunction(expr) {
     return { fn: null, error: "Función inválida. Revisá la sintaxis." };
   }
 
-  // Reemplaza notación matemática común a JS válido
-  const sanitized = expr
+  // Diccionario de funciones matemáticas
+  const mathDict = {
+    'sen': 'Math.sin',
+    'sin': 'Math.sin',
+    'cos': 'Math.cos',
+    'tan': 'Math.tan',
+    'ln': 'Math.log',
+    'log': 'Math.log10',
+    'sqrt': 'Math.sqrt',
+    'exp': 'Math.exp',
+    'pi': 'Math.PI',
+    'e': 'Math.E'
+  };
+
+  // 1. Pasa todo a minúsculas
+  // 2. Reemplaza potencias y multiplicaciones implícitas
+  // 3. Reemplaza palabras clave de un solo golpe usando el diccionario
+  const sanitized = expr.toLowerCase()
     .replace(/\^/g, "**")
     .replace(/(\d)(x)/g, "$1*$2")
-    .replace(/([a-z)])\s*\(/g, "$1*(")
-    .replace(/sen/gi, "Math.sin")
-    .replace(/sin/gi, "Math.sin")
-    .replace(/cos/gi, "Math.cos")
-    .replace(/tan/gi, "Math.tan")
-    .replace(/ln/gi, "Math.log")
-    .replace(/log/gi, "Math.log10")
-    .replace(/sqrt/gi, "Math.sqrt")
-    .replace(/exp/gi, "Math.exp")
-    .replace(/pi/gi, "Math.PI")
-    .replace(/e(?![a-z])/g, "Math.E");
+    .replace(/(x|\d|\))\s*\(/g, "$1*(")
+    .replace(/\)\s*x/g, ")*x")
+    .replace(/\b(sen|sin|cos|tan|ln|log|sqrt|exp|pi|e)\b/g, match => mathDict[match]);
 
   try {
     // eslint-disable-next-line no-new-func
     const fn = new Function("x", `"use strict"; return (${sanitized});`);
-    // Test con x=1 para validar
-    const testVal = fn(1);
-    if (!Number.isFinite(testVal)) {
-      throw new Error("Invalid return type");
-    }
+    
+    // Prueba de ejecución
+    fn(1); 
+    
     return { fn, error: null };
   } catch (e) {
-    // No exponer detalles internos
+    // Si la sintaxis de JS falla (ej: dejaron un '+' suelto)
     return { fn: null, error: "Función inválida. Revisá la sintaxis." };
   }
 }
-
 /**
  * Calcula derivada numérica usando diferencias centrales.
  * f'(x) ≈ [f(x+h) - f(x-h)] / (2h)
@@ -102,6 +108,11 @@ export function biseccion(expr, a, b, tol = 1e-6) {
     const fc = f(c);
     const fa = f(a);
     const err = prev_c !== null ? Math.abs((c - prev_c) / c) * 100 : null;
+
+    // Validar que los valores sean números válidos antes de agregar a la tabla
+    if (!isFinite(c) || !isFinite(fc)) {
+      return { iterations, root: +(a + b) / 2 / 2, converged: false, totalIter: i, error: "Cálculo divergió o produjo valores inválidos." };
+    }
 
     iterations.push({
       n: i, a: +a.toFixed(6), b: +b.toFixed(6),
@@ -152,6 +163,11 @@ export function reglaFalsa(expr, a, b, tol = 1e-6) {
     const c = b - (fb * (b - a)) / (fb - fa);
     const fc = f(c);
     const err = prev_c !== null ? Math.abs((c - prev_c) / c) * 100 : null;
+
+    // Validar que los valores sean números válidos
+    if (!isFinite(c) || !isFinite(fc)) {
+      return { iterations, root: +((a + b) / 2).toFixed(8), converged: false, totalIter: i, error: "Cálculo divergió o produjo valores inválidos." };
+    }
 
     iterations.push({
       n: i, a: +a.toFixed(6), b: +b.toFixed(6),
@@ -206,6 +222,11 @@ export function newtonRaphson(expr, x0, tol = 1e-6) {
     const x1 = x - fx / fpx;
     const err = Math.abs((x1 - x) / x1) * 100;
 
+    // Validar que los valores sean números válidos
+    if (!isFinite(x1) || !isFinite(err)) {
+      return { iterations, root: +x.toFixed(8), converged: false, totalIter: i, error: "Cálculo divergió. Probá con otro x₀ inicial." };
+    }
+
     iterations.push({
       n: i,
       x: +x.toFixed(6),
@@ -254,6 +275,11 @@ export function secante(expr, x0, x1, tol = 1e-6) {
 
     const x2 = xCurr - f1 * (xCurr - xPrev) / (f1 - f0);
     const err = Math.abs((x2 - xCurr) / x2) * 100;
+
+    // Validar que los valores sean números válidos
+    if (!isFinite(x2) || !isFinite(err)) {
+      return { iterations, root: +xCurr.toFixed(8), converged: false, totalIter: i, error: "Cálculo divergió. Probá con otros puntos iniciales." };
+    }
 
     iterations.push({
       n: i,
@@ -309,6 +335,11 @@ export function puntoFijo(exprG, x0, tol = 1e-6) {
     }
 
     const err = Math.abs((gx - x) / gx) * 100;
+
+    // Validar que los valores sean números válidos
+    if (!isFinite(gx) || !isFinite(err)) {
+      return { iterations, root: +x.toFixed(8), converged: false, totalIter: i, error: "El método diverge. Intentá reformular g(x) o elegir otro x₀." };
+    }
 
     iterations.push({
       n: i,
