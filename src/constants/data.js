@@ -91,3 +91,13 @@ export const NAV_ITEMS = [
   ["metodos", "Métodos"],
   ["docs", "Docs"],
 ];
+
+export const DOCS_CARDS = [
+  {
+    id: "docs",
+    body: "¡Estamos trabajando en la documentación! Mientras tanto, puedes explorar los métodos disponibles en la sección 'Métodos'.",
+    type: "docs",
+    title: "Documentación próximamente",
+    tag: "Docs"
+  }
+]

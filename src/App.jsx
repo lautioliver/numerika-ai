@@ -4,6 +4,7 @@ import { Footer } from "./components/Footer";
 import { HomePage } from "./pages/HomePage";
 import { SolverPage } from "./pages/SolverPage";
 import { MethodsPage } from "./pages/MethodsPage";
+import { Docs } from "./pages/docs";
 
 // Import styles
 import "./styles/globals.css";
@@ -59,6 +60,12 @@ export default function NumerikaApp() {
           onPageChange={setPage}
           funcExpr={funcExpr}    // ← Agregado 12/03
         />
+      )}
+
+      {page === "docs" && (
+        <Docs 
+        onPageChange={setPage} 
+        onMethodSelect={setActiveMethod} />
       )}
 
       <Footer />

@@ -97,6 +97,14 @@
   grid-column: 1 / -1;
 }
 
+.card.docs .card-tag {
+  color: #8aaa9a;
+}
+
+.card.docs .card-tag::before {
+  background: var(--sage);
+}
+
 /* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
