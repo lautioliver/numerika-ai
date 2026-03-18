@@ -95,7 +95,7 @@ export const NAV_ITEMS = [
 export const DOCS_CARDS = [
   {
     id: "docs",
-    body: "¡Estamos trabajando en la documentación! Mientras tanto, puedes explorar los métodos disponibles en la sección 'Métodos'.",
+    body: "¡Estamos trabajando en la documentación y la implementación IA! Mientras tanto, puedes explorar los métodos disponibles en la sección 'Métodos'.",
     type: "docs",
     title: "Documentación próximamente",
     tag: "Docs"

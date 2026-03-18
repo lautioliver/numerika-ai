@@ -1,11 +1,12 @@
+/* ─── Layout principal ───────────────────────────────────────────────────────── */
 .solver {
-  max-width: 860px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 48px 40px 80px;
 }
 
 .page-header {
-  margin-bottom: 36px;
+  margin-bottom: 28px;
 }
 
 .page-eyebrow {
@@ -29,18 +30,90 @@
 
 .page-title {
   font-family: 'DM Serif Display', serif;
-  font-size: 30px;
+  font-size: 40px;
   font-weight: 400;
   color: var(--dark);
+  line-height: 1.15;
 }
 
+.page-title em {
+  font-style: italic;
+  color: var(--teal);
+}
+
+/* ─── Tabs de métodos (fila horizontal) ──────────────────────────────────────── */
+.method-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 0;
+}
+
+.method-tab {
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  text-align: left;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.method-tab:hover {
+  border-color: var(--teal-lt);
+}
+
+.method-tab.active {
+  background: rgba(108, 189, 181, 0.1);
+  border-color: var(--teal);
+}
+
+.tab-name {
+  font-size: 12px;
+  color: var(--text);
+  display: block;
+  font-weight: 500;
+}
+
+.tab-type {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: block;
+}
+
+.method-tab.active .tab-type {
+  color: var(--teal);
+}
+
+/* ─── Descripción del método ─────────────────────────────────────────────────── */
+.method-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.8;
+  padding: 12px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--teal);
+  border-radius: 8px;
+  margin: 12px 0 20px;
+  font-family: 'DM Mono', monospace;
+}
+
+/* ─── Grid principal ─────────────────────────────────────────────────────────── */
 .solver-grid {
   display: grid;
-  grid-template-columns: 1fr 1.5fr;
+  grid-template-columns: 280px 1fr;
   gap: 20px;
   align-items: start;
 }
 
+/* ─── Panel ──────────────────────────────────────────────────────────────────── */
 .panel {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -49,7 +122,7 @@
 }
 
 .panel-header {
-  padding: 16px 22px;
+  padding: 14px 20px;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -64,9 +137,10 @@
 }
 
 .panel-body {
-  padding: 22px;
+  padding: 20px;
 }
 
+/* ─── Campos de formulario ───────────────────────────────────────────────────── */
 .field {
   margin-bottom: 18px;
 }
@@ -91,6 +165,7 @@
   color: var(--text);
   outline: none;
   transition: border-color 0.2s;
+  box-sizing: border-box;
 }
 
 .field input:focus {
@@ -100,48 +175,65 @@
 .field-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
 }
 
-.method-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 7px;
-}
-
-.method-pill {
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.2s;
-}
-
-.method-pill:hover {
-  border-color: var(--teal-lt);
-}
-
-.method-pill.active {
-  background: rgba(108, 189, 181, 0.1);
-  border-color: var(--teal);
-}
-
-.method-pill .pill-name {
-  font-size: 11px;
-  color: var(--text);
+small {
   display: block;
-  margin-bottom: 2px;
+  color: var(--muted);
+  font-size: 8px;
+  margin-top: 4px;
+  letter-spacing: 0.5px;
 }
 
-.method-pill .pill-type {
+/* ─── Rango de escaneo ───────────────────────────────────────────────────────── */
+.scan-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 11px;
+  border-radius: 8px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  transition: border-color 0.2s, background 0.2s;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.scan-toggle:hover {
+  border-color: var(--teal-lt);
+  background: rgba(108, 189, 181, 0.04);
+}
+
+.scan-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 9px;
-  letter-spacing: 1.5px;
+  letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--muted);
 }
 
+.scan-arrow {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.scan-toggle-hint {
+  font-size: 9px;
+  font-family: 'DM Mono', monospace;
+  color: var(--teal);
+}
+
+.scan-body {
+  animation: fadeUp 0.18s ease forwards;
+}
+
+/* ─── Divider ────────────────────────────────────────────────────────────────── */
 .divider {
   display: flex;
   align-items: center;
@@ -164,14 +256,26 @@
   color: var(--muted);
 }
 
+/* ─── Error ──────────────────────────────────────────────────────────────────── */
+.solver-error {
+  margin-top: 12px;
+  padding: 10px 13px;
+  background: rgba(255, 200, 200, 0.2);
+  border: 1px solid rgba(255, 100, 100, 0.5);
+  border-radius: 6px;
+  color: #c41e3a;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+/* ─── Status bar ─────────────────────────────────────────────────────────────── */
 .status-bar {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 9px 13px;
   border-radius: 8px;
-  background: rgba(108, 189, 181, 0.1);
-  border: 1px solid rgba(108, 189, 181, 0.3);
+  border: 1px solid;
   margin-bottom: 16px;
 }
 
@@ -179,21 +283,21 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--teal);
+  flex-shrink: 0;
 }
 
 .status-text {
   font-size: 10px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: var(--teal);
 }
 
+/* ─── Gráfico ────────────────────────────────────────────────────────────────── */
 .graph-area {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 10px;
-  height: 180px;
+  height: 340px;
   position: relative;
   overflow: hidden;
   margin-bottom: 18px;
@@ -207,6 +311,37 @@
   color: var(--muted);
   top: 12px;
   left: 14px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.graph-label::before {
+  content: '';
+  display: inline-block;
+  width: 18px;
+  height: 2px;
+  background: var(--teal);
+  border-radius: 2px;
+}
+
+.graph-root-label {
+  position: absolute;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--teal);
+  top: 12px;
+  right: 14px;
+  z-index: 1;
+  font-family: 'DM Mono', monospace;
+}
+
+/* ─── Tabla de iteraciones ───────────────────────────────────────────────────── */
+.table-wrap {
+  overflow-x: auto;
+  margin-bottom: 0;
 }
 
 .iter-table {
@@ -239,6 +374,7 @@
   background: rgba(108, 189, 181, 0.07);
 }
 
+/* ─── AI Insight ─────────────────────────────────────────────────────────────── */
 .ai-insight {
   padding: 14px 16px;
   background: rgba(200, 214, 191, 0.15);
@@ -271,8 +407,62 @@
   font-size: 11px;
   color: var(--muted);
   line-height: 1.8;
+  margin: 0;
 }
 
+/* ─── Alerta raíces múltiples ────────────────────────────────────────────────── */
+.multi-root-alert {
+  margin-top: 12px;
+  padding: 11px 13px;
+  background: rgba(227, 223, 186, 0.3);
+  border: 1px solid rgba(200, 180, 100, 0.4);
+  border-radius: 7px;
+  animation: fadeUp 0.2s ease forwards;
+}
+
+.multi-root-title {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #9a7a2a;
+  margin: 0 0 6px 0;
+}
+
+.multi-root-body {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin: 0 0 9px 0;
+}
+
+.multi-root-body strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.multi-root-range {
+  font-family: 'DM Mono', monospace;
+  color: var(--text);
+  font-size: 10px;
+}
+
+.chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.root-chip {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  padding: 3px 10px;
+  background: rgba(108, 189, 181, 0.1);
+  border: 1px solid rgba(108, 189, 181, 0.3);
+  border-radius: 20px;
+  color: var(--teal);
+}
+
+/* ─── Result placeholder ─────────────────────────────────────────────────────── */
 .result-placeholder {
   display: flex;
   flex-direction: column;
@@ -289,317 +479,25 @@
   text-transform: uppercase;
 }
 
-/* Botones deshabilitados */
-.btn-run:disabled {
-  cursor: not-allowed;
-  background: #999;
-}
-
-/* Textos de ayuda */
-small {
-  display: block;
-  color: var(--muted);
-  font-size: 8px;
-  margin-top: 4px;
-  letter-spacing: 0.5px;
-}
-
-/* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
-
+/* ─── Responsive ─────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .solver {
-    max-width: 100%;
-    padding: 32px 24px 60px;
-  }
-
-  .page-header {
-    margin-bottom: 24px;
-  }
-
-  .page-title {
-    font-size: 24px;
-  }
-
-  .page-eyebrow {
-    font-size: 9px;
-    gap: 10px;
-  }
-
-  .page-eyebrow::before {
-    width: 16px;
+    padding: 32px 20px 60px;
   }
 
   .solver-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .method-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .panel {
-    border-radius: 12px;
-  }
-
-  .panel-header {
-    padding: 14px 18px;
-  }
-
-  .panel-body {
-    padding: 16px;
-  }
-
-  .field {
-    margin-bottom: 14px;
-  }
-
-  .field label {
-    font-size: 8px;
-    margin-bottom: 6px;
-  }
-
-  .field input {
-    padding: 9px 11px;
-    font-size: 12px;
-    border-radius: 6px;
-    min-height: 38px;
-  }
-
-  .iter-table {
-    font-size: 10px;
-  }
-
-  .iter-table th {
-    font-size: 8px;
-    padding: 6px 7px;
-  }
-
-  .iter-table td {
-    padding: 6px 7px;
-  }
-
-  .graph-area {
-    height: 160px;
-  }
-
-  .result-placeholder {
-    min-height: 240px;
-  }
-}
-
-@media (max-width: 480px) {
-  .solver {
-    max-width: 100%;
-    padding: 20px 16px 40px;
-  }
-
-  .page-header {
-    margin-bottom: 18px;
   }
 
   .page-title {
-    font-size: 20px;
-    line-height: 1.2;
+    font-size: 28px;
   }
 
-  .page-eyebrow {
-    font-size: 8px;
-    gap: 8px;
-    margin-bottom: 8px;
-    letter-spacing: 2px;
-  }
-
-  .page-eyebrow::before {
-    width: 12px;
-  }
-
-  .solver-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  /* Stack method tabs vertically on mobile */
-  .method-buttons-row {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-
-  .method-buttons-row button {
-    width: 100%;
-    text-align: left;
-  }
-
-  .method-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .panel {
-    border-radius: 10px;
-  }
-
-  .panel-header {
-    padding: 12px 14px;
-    flex-direction: column;
-    align-items: flex-start;
+  .method-tabs {
     gap: 6px;
   }
 
-  .panel-title {
-    font-size: 8px;
-    letter-spacing: 2px;
-  }
-
-  .panel-body {
-    padding: 12px;
-  }
-
-  .field {
-    margin-bottom: 12px;
-  }
-
-  .field label {
-    font-size: 7px;
-    letter-spacing: 1.5px;
-    margin-bottom: 5px;
-  }
-
-  .field input {
-    padding: 8px 10px;
-    font-size: 12px;
-    border-radius: 6px;
-    min-height: 36px;
-  }
-
-  .field-row,
-  .method-grid {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .method-pill {
-    padding: 9px 10px;
-    font-size: 11px;
-    min-height: 40px;
-    display: flex;
-    align-items: center;
-  }
-
-  .method-pill .pill-name {
-    font-size: 10px;
-  }
-
-  .method-pill .pill-type {
-    font-size: 8px;
-  }
-
-  .divider {
-    gap: 10px;
-    margin: 14px 0;
-  }
-
-  .divider span {
-    font-size: 8px;
-  }
-
-  /* Responsive table for mobile */
-  .iter-table {
-    font-size: 9px;
-    overflow-x: auto;
-    display: block;
-    width: 100%;
-  }
-
-  .iter-table thead,
-  .iter-table tbody,
-  .iter-table tr {
-    display: block;
-    width: 100%;
-  }
-
-  .iter-table tr {
-    border-bottom: 2px solid var(--border);
-    margin-bottom: 8px;
-    padding-bottom: 8px;
-  }
-
-  .iter-table th {
-    display: none;
-  }
-
-  .iter-table td {
-    padding: 4px 0;
-    text-align: right;
-    position: relative;
-    padding-left: 45%;
-    display: block;
-  }
-
-  .iter-table td::before {
-    content: attr(data-label);
-    position: absolute;
-    left: 0;
-    font-weight: bold;
-    font-size: 8px;
-    text-transform: uppercase;
-  }
-
-  .status-bar {
-    gap: 6px;
-    padding: 8px 10px;
-    margin-bottom: 12px;
-  }
-
-  .status-dot {
-    width: 5px;
-    height: 5px;
-  }
-
-  .status-text {
-    font-size: 9px;
-    letter-spacing: 1px;
-  }
-
-  .graph-area {
-    height: 140px;
-    margin-bottom: 12px;
-  }
-
-  .graph-label {
-    font-size: 8px;
-    top: 10px;
-    left: 10px;
-  }
-
-  .ai-insight {
-    padding: 10px 12px;
-    margin-top: 12px;
-  }
-
-  .ai-label {
-    font-size: 8px;
-    margin-bottom: 4px;
-  }
-
-  .ai-text {
-    font-size: 10px;
-    line-height: 1.6;
-  }
-
-  .result-placeholder {
-    min-height: 200px;
-    gap: 8px;
-  }
-
-  .result-placeholder p {
-    font-size: 9px;
-    letter-spacing: 1.5px;
-  }
-
-  .result-placeholder svg {
-    width: 20px;
-    height: 20px;
+  .method-tab {
+    padding: 8px 12px;
   }
 }
