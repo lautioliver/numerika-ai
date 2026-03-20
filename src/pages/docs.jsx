@@ -30,7 +30,7 @@ export const Docs = ({ onPageChange, onMethodSelect }) => {
         </div>
               <div className="home-empty">
             <p>
-                
+                    
             </p>
             
         </div>
