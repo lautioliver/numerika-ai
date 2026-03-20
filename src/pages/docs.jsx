@@ -4,7 +4,7 @@ import { DOCS_CARDS, HOME_CARDS } from "../constants/data";
 
 export const Docs = ({ onPageChange, onMethodSelect }) => {
     return (console.log("Renderizando Docs src/docs.jsx")), (
-       <div className="home fade-up">
+      <div className="home fade-up">
         <h1 className="home-title">
             Documentación<br />
             <em>Próximamente...</em>

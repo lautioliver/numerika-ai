@@ -18,7 +18,13 @@ export const Navigation = ({ currentPage, onPageChange }) => {
           </li>
         ))}
       </ul>
-      <div className="nav-badge">v0.1 · MVP</div>
+      <nav>
+        <p>
+          <a href="https://github.com/lautioliver/numerika-ai" target="_blank" rel="noopener noreferrer" style={{color: "#040404", textAlign: "center", display: "inline-flex", alignItems: "center", gap: "6px"}}>
+            <img src="/GitHub_Invertocat_White_Clearspace.png" alt="GitHub" style={{ width: "35px", verticalAlign: "middle" , color: "#0b0e0d"}} />
+          </a>
+        </p>
+      </nav> 
     </nav>
   );
 };

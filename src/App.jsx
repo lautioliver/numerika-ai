@@ -4,6 +4,7 @@ import { Footer } from "./components/Footer";
 import { HomePage } from "./pages/HomePage";
 import { SolverPage } from "./pages/SolverPage";
 import { MethodsPage } from "./pages/MethodsPage";
+import { Amn } from "./pages/Amn";
 import { Docs } from "./pages/docs";
 
 // Import styles
@@ -62,13 +63,18 @@ export default function NumerikaApp() {
         />
       )}
 
-      {page === "docs" && (
-        <Docs 
-        onPageChange={setPage} 
-        onMethodSelect={setActiveMethod} />
-      )}
+      {page == "amn" && (
+        <Amn>
+          onPageChange={setPage}
+          // ... otras props si es necesario.
+        </Amn> 
+      )
+      }
 
-      <Footer />
+      {page === "docs" && <Docs onPageChange={setPage}  />}
+
+      
+
     </div>
   );
 }

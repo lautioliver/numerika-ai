@@ -54,6 +54,15 @@ export const METHODS_DETAILS = [
   },
 ];
 
+export const ALPLICATION_METHODS = [
+  {
+    id: "amn",
+    name: "AMN",
+    type: "amn",
+    desc: "ANO"
+  }
+];
+
 export const METHOD_GUIDE = {
   biseccion: {
     procedimiento: [
@@ -188,6 +197,7 @@ export const NAV_ITEMS = [
   ["home", "Inicio"],
   ["solver", "Solver"],
   ["metodos", "Métodos"],
+  ["amn", "Aplicaciones"],
   ["docs", "Docs"],
 ];
 
@@ -199,4 +209,22 @@ export const DOCS_CARDS = [
     title: "Documentación próximamente",
     tag: "Docs"
   }
+]
+
+export const AMN_CARDS = [
+  {
+    id: "semaforo",
+    body: "Aquí encontrarás una función multivarible la cual encuentra la relación entre personas y semáforos en una ciudad, utilizando métodos numéricos para encontrar la cantidad de equilibrio de semaforos.",
+    type: "Multivariable",
+    title: "Cantidad de Semáforos en una Ciudad",
+    tag: "Multivariable"
+  },
+  /*{
+    // Proxima aplicación...
+    id: " ",
+    body: " ",
+    type: " ",
+    title: " ",
+    tag: " "
+  }*/
 ]

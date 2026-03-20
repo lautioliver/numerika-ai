@@ -105,6 +105,16 @@
   background: #B03A21;
 }
 
+/* AMN card */
+
+.card.Multivariable .card-tag {
+  color: #b0a060;
+}
+
+.card.Multivariable .card-tag::before {
+  background: #b0a060;
+}
+
 /* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
