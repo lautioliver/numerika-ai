@@ -7,16 +7,22 @@ import { query } from './src/config/db.js';
 const app = express();
 
 // --- MIDDLEWARES ---
-app.use(express.json());
-
-// 2. CONFIGURACIÓN DE CORS (Corregida la mezcla de import/require)
+// CONFIGURACIÓN DE CORS
 const corsOptions = {
-    origin: [ 
-        'https://numerika-ai.vercel.app'
-    ], 
+    origin: [
+        'http://localhost:5173',           // Para cuando pruebes en tu PC
+        'https://numerika-ai.vercel.app'    // Tu link oficial de Vercel
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
     optionsSuccessStatus: 200
 };
+
 app.use(cors(corsOptions));
+
+// MUY IMPORTANTE: Manejo explícito de peticiones OPTIONS (Preflight)
+app.options('*', cors(corsOptions));
 
 // --- RUTAS ---
 
