@@ -214,17 +214,11 @@ export const DOCS_CARDS = [
 export const AMN_CARDS = [
   {
     id: "semaforo",
-    body: "Aquí encontrarás una función multivarible la cual encuentra la relación entre personas y semáforos en una ciudad, utilizando métodos numéricos para encontrar la cantidad de equilibrio de semaforos.",
-    type: "Multivariable",
-    title: "Cantidad de Semáforos en una Ciudad",
-    tag: "Multivariable"
+    title: "Riesgo Urbano",
+    body: "Simulación de semaforización mediante Newton-Raphson.",
+    tag: "Ingeniería Civil",
+    type: "Newton-Raphson"
   },
-  /*{
-    // Proxima aplicación...
-    id: " ",
-    body: " ",
-    type: " ",
-    title: " ",
-    tag: " "
-  }*/
-]
+  // aplicaciones futuras:
+  // { id: "termodinamica", title: "Transferencia de Calor", ... }
+];

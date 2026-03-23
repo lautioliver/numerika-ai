@@ -143,6 +143,7 @@
 /* ─── Campos de formulario ───────────────────────────────────────────────────── */
 .field {
   margin-bottom: 18px;
+  color: #1A1F1E;
 }
 
 .field label {

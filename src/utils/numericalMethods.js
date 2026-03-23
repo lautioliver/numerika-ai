@@ -60,7 +60,7 @@ export function parseFunction(expr) {
     s = s.replace(/__PI__/g,    "Math.PI");
     s = s.replace(/__E__/g,     "Math.E");
 
-    // eslint-disable-next-line no-new-func
+     
     const fn = new Function("x", `"use strict"; return (${s});`);
     fn(1); // test de ejecución
     return { fn, error: null };

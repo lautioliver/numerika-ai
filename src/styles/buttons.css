@@ -65,6 +65,24 @@
   transform: scale(0.98);
 }
 
+.btn-register {
+  font-size: 12px;
+  background-color: #2c3836;
+  transition: none;
+}
+
+.btn-login {
+  font-size: 12px;
+}
+
+.btn-register:hover {
+  border-color:#6CBDB5;
+}
+
+.btn-login:hover {
+  border-color: azure;
+}
+
 /* Botones deshabilitados */
 .btn-cta:disabled,
 .btn-run:disabled {

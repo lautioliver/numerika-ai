@@ -1,0 +1,25 @@
+services:
+  # Base de Datos Principal (PostgreSQL)
+  db:
+    image: postgres:15
+    container_name: numerika-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Capa de Caché y Contexto (Redis)
+  cache:
+    image: redis:7-alpine
+    container_name: numerika-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:

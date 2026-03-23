@@ -5,7 +5,9 @@ import { HomePage } from "./pages/HomePage";
 import { SolverPage } from "./pages/SolverPage";
 import { MethodsPage } from "./pages/MethodsPage";
 import { Amn } from "./pages/Amn";
-import { Docs } from "./pages/docs";
+import { Docs } from "./pages/Docs";
+import { RegisterPage } from "./pages/RegisterPage";
+import { LoginPage } from "./pages/loginPage"; // Chequeá si es loginPage o LoginPage
 
 // Import styles
 import "./styles/globals.css";
@@ -15,66 +17,105 @@ import "./styles/buttons.css";
 import "./styles/home.css";
 import "./styles/solver.css";
 import "./styles/footer.css";
+import "./styles/auth.css";
 
 export default function NumerikaApp() {
+  // 1. ESTADOS
   const [page, setPage] = useState("home");
+  const [user, setUser] = useState(null); // <-- AGREGAMOS ESTADO DE USUARIO
   const [activeMethod, setActiveMethod] = useState("biseccion");
   const [calculated, setCalculated] = useState(false);
   const [funcExpr, setFuncExpr] = useState("x^2 - x - 2");
 
-  // Actualiza función Y oculta resultados anteriores
-  const handleFuncChange = (newExpr) => {
-    setFuncExpr(newExpr);
-    setCalculated(false); // Obliga a recalcular con nueva función
-  };
-
+  // PERSISTENCIA: Revisar si hay usuario al cargar la app
   useEffect(() => {
-    const handleMethodChange = (e) => {
-      setActiveMethod(e.detail.methodId);
-      setCalculated(false); // Oculta resultados si cambia método
-    };
-
-    window.addEventListener("methodChange", handleMethodChange);
-    return () => window.removeEventListener("methodChange", handleMethodChange);
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
   }, []);
 
+  // 2. FUNCIONES DE MANEJO
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
+
+  const handleLoginSuccess = (userData) => {
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
+    setPage("home");
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem("user");
+    setPage("home");
+  };
+
+  // 3. RENDERIZADO
   return (
     <div className="app">
-      <Navigation currentPage={page} onPageChange={setPage} />
+      {/* Pasamos el usuario a la Navigation para que pueda saludarlo */}
+      <Navigation 
+        currentPage={page} 
+        onPageChange={handlePageChange} 
+        user={user} 
+        onLogout={handleLogout}
+      />
 
-      {page === "home" && <HomePage onPageChange={setPage} />}
+      <main>
+        {page === "home" && <HomePage onPageChange={handlePageChange} />}
 
-      {page === "solver" && (
-        <SolverPage
-          activeMethod={activeMethod}
-          setActiveMethod={setActiveMethod}
-          calculated={calculated}
-          onCalculate={() => setCalculated(true)}
-          funcExpr={funcExpr}
-          onFuncChange={handleFuncChange}
-        />
-      )}
+        {page === "solver" && (
+          <SolverPage
+            activeMethod={activeMethod}
+            setActiveMethod={setActiveMethod}
+            calculated={calculated}
+            onCalculate={() => setCalculated(true)}
+            funcExpr={funcExpr}
+            onFuncChange={(expr) => { setFuncExpr(expr); setCalculated(false); }}
+            id = "Solver"
+          />
+        )}
 
-      {page === "metodos" && (
-        <MethodsPage
-          onMethodSelect={setActiveMethod}
+        {page === "metodos" && (
+          <MethodsPage
+            onMethodSelect={setActiveMethod}
+            onPageChange={handlePageChange}
+            funcExpr={funcExpr}
+            id="Métodos"
+          />
+        )}
+
+        {page === "amn" && 
+          <Amn 
+            id="Aplicaciones"
+          />
+        }
+        {page === "docs" && 
+        <Docs 
           onPageChange={setPage}
-          funcExpr={funcExpr}    // ← Agregado 12/03
+          id="Docs" 
         />
-      )}
+        }
 
-      {page == "amn" && (
-        <Amn>
-          onPageChange={setPage}
-          // ... otras props si es necesario.
-        </Amn> 
-      )
-      }
+        {/* --- CORRECCIÓN DE RUTAS --- */}
+        {page === "register" && (
+          <RegisterPage 
+          onPageChange={handlePageChange} 
+          id="Register"
+          />
+        )}
 
-      {page === "docs" && <Docs onPageChange={setPage}  />}
-
-      
-
+        {page === "login" && (
+          <LoginPage 
+            onPageChange={handlePageChange} 
+            onLoginSuccess={handleLoginSuccess}
+            id="Login"
+          />
+        )}
+      </main>  
+  
     </div>
   );
 }

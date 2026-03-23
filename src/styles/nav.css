@@ -76,6 +76,19 @@
   flex-shrink: 0;
 }
 
+.nav-container {
+  z-index: 3000;
+  display: flex;
+  align-items: center; /* Alinea todo verticalmente al centro */
+  padding: 0%;  /* Ajusta el aire a los costados */
+}
+
+.nav-auth-group {
+  margin-left: auto;
+  display: flex;
+  gap: 5px;
+}
+
 /* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
