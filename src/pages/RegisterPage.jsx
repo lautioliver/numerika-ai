@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 
-export const RegisterPage = ({ onPageChange, onMethodSelect }) => {
-  // 1. ESTADOS
+export const RegisterPage = ({ onPageChange }) => {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -11,16 +10,14 @@ export const RegisterPage = ({ onPageChange, onMethodSelect }) => {
     institution: "",
     role: "student",
     acceptTerms: false,
-    newsEmail: false,
   });
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
-  const [showTermsModal, setShowTermsModal] = useState(false); // ✅ CORREGIDO: useState
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
-  // 2. FUNCIONES AUXILIARES DE CONTRASEÑA
   const checkPasswordStrength = (password) => {
     let strength = 0;
     if (password.length >= 8) strength++;
@@ -44,15 +41,11 @@ export const RegisterPage = ({ onPageChange, onMethodSelect }) => {
     return "strong";
   };
 
-  // 3. MANEJO DE CAMBIOS
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     const newValue = type === "checkbox" ? checked : value;
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: newValue,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: newValue }));
 
     if (name === "password") {
       setPasswordStrength(checkPasswordStrength(value));
@@ -63,7 +56,6 @@ export const RegisterPage = ({ onPageChange, onMethodSelect }) => {
     }
   };
 
-  // 4. VALIDACIÓN
   const validateForm = () => {
     const newErrors = {};
     if (!formData.firstName.trim()) newErrors.firstName = "El nombre es requerido";
@@ -87,12 +79,11 @@ export const RegisterPage = ({ onPageChange, onMethodSelect }) => {
     return newErrors;
   };
 
-  // 5. ENVÍO REAL A LA BASE DE DATOS
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
-
-    const API_URL = import.meta.env.VITE_API_URL; 
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -102,7 +93,8 @@ export const RegisterPage = ({ onPageChange, onMethodSelect }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('${API_URL}/api/auth/register', {
+      // ✅ CORREGIDO: Se usan backticks (``) para inyectar la variable API_URL
+      const response = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -111,20 +103,18 @@ export const RegisterPage = ({ onPageChange, onMethodSelect }) => {
       const data = await response.json();
 
       if (data.success) {
-        setLoading(false);
         setSuccess(true);
       } else {
-        setLoading(false);
         alert(data.error || "Error al registrar");
       }
     } catch (error) {
-      setLoading(false);
       console.error("Error de conexión:", error);
       alert("No se pudo conectar con el servidor backend.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // 6. RENDERIZADO DE ÉXITO
   if (success) {
     return (
       <div className="register fade-up">
@@ -135,9 +125,7 @@ export const RegisterPage = ({ onPageChange, onMethodSelect }) => {
             </svg>
           </div>
           <h2 className="success-title">¡Bienvenido a NumérikaAI!</h2>
-          <p className="success-message">
-            Tu cuenta ha sido creada exitosamente.
-          </p>
+          <p className="success-message">Tu cuenta ha sido creada exitosamente.</p>
           <button className="btn-cta" onClick={() => onPageChange("home")} style={{ margin: "0 auto" }}>
             Ir a Inicio
           </button>
@@ -146,10 +134,8 @@ export const RegisterPage = ({ onPageChange, onMethodSelect }) => {
     );
   }
 
-  // 7. RENDERIZADO DEL FORMULARIO
   return (
     <>
-      {/* CAPA 1: El contenido de la página (Registro) */}
       <div className="register fade-up">
         <div className="register-header">
           <div className="register-eyebrow">Únete a la comunidad</div>
@@ -225,12 +211,7 @@ export const RegisterPage = ({ onPageChange, onMethodSelect }) => {
             <div className="checkbox-item">
               <input type="checkbox" id="acceptTerms" name="acceptTerms" checked={formData.acceptTerms} onChange={handleChange} />
               <label htmlFor="acceptTerms">
-                Acepto los <span 
-                  onClick={() => setShowTermsModal(true)} 
-                  style={{ color: "var(--teal)", cursor: "pointer", textDecoration: "underline" }}
-                >
-                  términos y condiciones
-                </span>
+                Acepto los <span onClick={() => setShowTermsModal(true)} style={{ color: "var(--teal)", cursor: "pointer", textDecoration: "underline" }}>términos y condiciones</span>
               </label>
             </div>
             {errors.acceptTerms && <div className="form-hint error">{errors.acceptTerms}</div>}
@@ -247,7 +228,6 @@ export const RegisterPage = ({ onPageChange, onMethodSelect }) => {
         </form>
       </div>
 
-      {/* CAPA 2: El Modal (Afuera del div .register para que el blur sea total) */}
       {showTermsModal && (
         <div className="modal-overlay" onClick={() => setShowTermsModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -257,22 +237,12 @@ export const RegisterPage = ({ onPageChange, onMethodSelect }) => {
             </div>
             <div className="modal-body">
               <h4>1. Propósito Educativo</h4>
-              <p>NumérikaAI es una herramienta diseñada con fines académicos. Los resultados deben ser verificados por el usuario.</p>
+              <p>NumérikaAI es una herramienta diseñada con fines académicos.</p>
               <h4>2. Privacidad</h4>
-              <p>Tus datos se utilizan únicamente para mejorar la plataforma. No compartimos información con terceros.</p>
-              <h4>3. Responsabilidad</h4>
-              <p>El uso de los resultados en entornos profesionales o exámenes es responsabilidad exclusiva del usuario.</p>
+              <p>Tus datos se utilizan únicamente para mejorar la plataforma.</p>
             </div>
             <div className="modal-footer">
-              <button 
-                className="btn-submit" 
-                onClick={() => {
-                  setFormData(prev => ({ ...prev, acceptTerms: true })); // Marcamos el check automáticamente
-                  setShowTermsModal(false);
-                }}
-              >
-                Entendido
-              </button>
+              <button className="btn-submit" onClick={() => { setFormData(prev => ({ ...prev, acceptTerms: true })); setShowTermsModal(false); }}>Entendido</button>
             </div>
           </div>
         </div>

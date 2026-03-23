@@ -7,7 +7,7 @@ export default defineConfig({
   server : {
     proxy: {
       '/api':{
-        target: 'http://localhost:3000', //URL del servidor Node.js
+        target: '${API_URL}/api/auth/register', //URL del servidor Node.js
         changeOrigin: true,
         secure: false,
       },
