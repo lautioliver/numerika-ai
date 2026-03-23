@@ -7,19 +7,14 @@ import { query } from './src/config/db.js';
 const app = express();
 
 // --- MIDDLEWARES ---
-// CONFIGURACIÓN DE CORS
-const corsOptions = {
-    origin: [
-        'http://localhost:5173',           // Para cuando pruebes en tu PC
-        'https://numerika-ai.vercel.app'    // Tu link oficial de Vercel
-    ],
+// CONFIGURACIÓN DE CORS TEMPORAL (NUCLEAR)
+app.use(cors({
+    origin: '*', 
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-    optionsSuccessStatus: 200
-};
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
-app.use(cors(corsOptions));
+app.options('*', cors()); // Habilita pre-flight para todo
 
 // MUY IMPORTANTE: Manejo explícito de peticiones OPTIONS (Preflight)
 app.options('*', cors(corsOptions));
