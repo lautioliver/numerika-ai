@@ -7,7 +7,7 @@ import { MethodsPage } from "./pages/MethodsPage";
 import { Amn } from "./pages/Amn";
 import { Docs } from "./pages/Docs";
 import { RegisterPage } from "./pages/RegisterPage";
-import { LoginPage } from "./pages/loginPage"; // Chequeá si es loginPage o LoginPage
+import { LoginPage } from "./pages/LoginPage"; // Chequeá si es loginPage o LoginPage
 
 // Import styles
 import "./styles/globals.css";
@@ -74,7 +74,7 @@ export default function NumerikaApp() {
             onCalculate={() => setCalculated(true)}
             funcExpr={funcExpr}
             onFuncChange={(expr) => { setFuncExpr(expr); setCalculated(false); }}
-            id = "Solver"
+            
           />
         )}
 
@@ -83,19 +83,17 @@ export default function NumerikaApp() {
             onMethodSelect={setActiveMethod}
             onPageChange={handlePageChange}
             funcExpr={funcExpr}
-            id="Métodos"
           />
         )}
 
         {page === "amn" && 
           <Amn 
-            id="Aplicaciones"
+            
           />
         }
         {page === "docs" && 
         <Docs 
-          onPageChange={setPage}
-          id="Docs" 
+          onPageChange={setPage} 
         />
         }
 
@@ -111,7 +109,7 @@ export default function NumerikaApp() {
           <LoginPage 
             onPageChange={handlePageChange} 
             onLoginSuccess={handleLoginSuccess}
-            id="Login"
+            
           />
         )}
       </main>  
