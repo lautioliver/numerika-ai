@@ -1,4 +1,4 @@
-import 'dotenv/config'; // 👈 1. CARGA LAS VARIABLES DEL .ENV (Fundamental)
+import 'dotenv/config'; 
 import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
@@ -7,31 +7,26 @@ import { query } from './src/config/db.js';
 const app = express();
 
 // --- MIDDLEWARES ---
-// CONFIGURACIÓN DE CORS TEMPORAL (NUCLEAR)
+
+// 1. Lectura de JSON (SIN ESTO req.body ESTÁ VACÍO)
+app.use(express.json()); 
+
+// 2. Configuración de CORS corregida para Express 5
 app.use(cors({
-    origin: '*', 
+    origin: '*', // Permite todo temporalmente para asegurar que conecte
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.options('*', cors()); // Habilita pre-flight para todo
-
-// MUY IMPORTANTE: Manejo explícito de peticiones OPTIONS (Preflight)
-app.options('*', cors(corsOptions));
+// 3. Manejo de Preflight para Express 5
+app.options('(.*)', cors()); 
 
 // --- RUTAS ---
 
-// 1. Ruta de prueba
 app.get('/', (req, res) => {
     res.send("NumerikaAI API is running... 🚀");
 });
 
-// 2. Ruta de cálculo (Test)
-app.post('/api/calcular', (req, res) => {
-    res.json({ msj: "Conexión exitosa desde NumerikaAI" });
-});
-
-// 3. Ruta de REGISTRO
 app.post('/api/auth/register', async (req, res) => {
     const { firstName, lastName, email, password, institution, role } = req.body;
 
@@ -68,7 +63,6 @@ app.post('/api/auth/register', async (req, res) => {
     }
 });
 
-// 4. Ruta de LOGIN
 app.post('/api/auth/login', async (req, res) => {
     const { email, password } = req.body;
     try {
@@ -94,8 +88,6 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-// --- ENCENDIDO DEL SERVIDOR ---
-// 3. USAMOS EL PUERTO DEL .ENV O EL 3000 POR DEFECTO
 const PORT = process.env.PORT || 3000; 
 
 app.listen(PORT, () => {
