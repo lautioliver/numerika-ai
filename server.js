@@ -18,9 +18,6 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// 3. Manejo de Preflight para Express 5
-app.options('(.*)', cors()); 
-
 // --- RUTAS ---
 
 app.get('/', (req, res) => {
