@@ -2,9 +2,12 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
+import helmet from 'helmet';
 import { query } from './src/config/db.js';
 
 const app = express();
+
+app.use(helmet());
 
 // --- MIDDLEWARES ---
 
@@ -13,7 +16,7 @@ app.use(express.json());
 
 // 2. Configuración de CORS corregida para Express 5
 app.use(cors({
-    origin: '*', // Permite todo temporalmente para asegurar que conecte
+    origin: 'https://numerika-ai.vercel.app', // Permite todo temporalmente para asegurar que conecte
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
