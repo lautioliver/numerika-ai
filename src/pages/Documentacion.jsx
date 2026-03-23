@@ -2,7 +2,7 @@ import React from "react";
 import { Card } from "../components/Card";
 import { DOCS_CARDS, HOME_CARDS } from "../constants/data";
 
-export function Docs({ onPageChange, onMethodSelect }) {
+export function Documentacion({ onPageChange, onMethodSelect }) {
     return (console.log("Renderizando Docs src/docs.jsx")), (
       <div className="home fade-up">
         <h1 className="home-title">
