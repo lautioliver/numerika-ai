@@ -92,6 +92,8 @@ export const RegisterPage = ({ onPageChange, onMethodSelect }) => {
     e.preventDefault();
     const newErrors = validateForm();
 
+    const API_URL = import.meta.env.VITE_API_URL; 
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -100,7 +102,7 @@ export const RegisterPage = ({ onPageChange, onMethodSelect }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('https://numerika-ai.vercel.app', {
+      const response = await fetch('${API_URL}/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
