@@ -5,7 +5,7 @@ import { HomePage } from "./pages/HomePage";
 import { SolverPage } from "./pages/SolverPage";
 import { MethodsPage } from "./pages/MethodsPage";
 import { Amn } from "./pages/Amn";
-import { Docs } from "./pages/Docs";
+import { Documentacion } from "./pages/Documentacion";
 import { RegisterPage } from "./pages/RegisterPage";
 import { LoginPage } from "./pages/LoginPage"; // Chequeá si es loginPage o LoginPage
 
@@ -92,7 +92,7 @@ export default function NumerikaApp() {
           />
         }
         {page === "docs" && 
-        <Docs 
+        <Documentacion 
           onPageChange={setPage} 
         />
         }
