@@ -16,7 +16,7 @@ app.use(express.json());
 
 // 2. Configuración de CORS corregida para Express 5
 app.use(cors({
-    origin: 'https://numerika-ai.vercel.app', // Permite todo temporalmente para asegurar que conecte
+    origin: 'https://numerika-ai.vercel.app', 
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));

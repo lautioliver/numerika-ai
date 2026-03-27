@@ -215,10 +215,18 @@ export const AMN_CARDS = [
   {
     id: "semaforo",
     title: "Riesgo Urbano",
-    body: "Simulación de semaforización mediante Newton-Raphson.",
+    body: "Calcula la densidad óptima de infraestructura de control vial usando Newton-Raphson. Modela el equilibrio entre costo operativo y multa objetivo.",
     tag: "Ingeniería Civil",
-    type: "Newton-Raphson"
+    type: "Newton-Raphson",
   },
-  // aplicaciones futuras:
-  // { id: "termodinamica", title: "Transferencia de Calor", ... }
+  {
+    id: "estructura",
+    title: "Análisis de Viga",
+    body: "Determina la posición exacta donde la deflexión de una viga simplemente apoyada alcanza un valor objetivo, usando el método de la Secante sobre la ecuación de la elástica.",
+    tag: "Ingeniería Estructural",
+    type: "Secante",
+  },
+  // Futuras aplicaciones:
+  // { id: "termodinamica", title: "Transferencia de Calor", tag: "Termodinámica", type: "Bisección / Regla Falsa", body: "..." },
+  // { id: "poblacion",     title: "Crecimiento Poblacional", tag: "Demografía",   type: "Punto Fijo",           body: "..." },
 ];

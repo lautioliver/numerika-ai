@@ -25,3 +25,8 @@ dist-ssr
 
 .env
 build
+node_modules/
+dist/
+.DS_Store
+
+git check-ignore .env

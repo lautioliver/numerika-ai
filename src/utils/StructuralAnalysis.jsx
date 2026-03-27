@@ -12,87 +12,115 @@ const C = {
 };
 
 // ─── Componente Principal ─────────────────────────────────────────────────────
-export default function SimuladorMultas() {
+// Modelo: Una viga simplemente apoyada bajo carga distribuida.
+// Se busca la deflexión x (en metros) donde la curva elástica cumple f(x) = 0.
+// f(x) = E·I·y''(x) + M(x) = 0 simplificado como:
+// f(x) = P·x³ - (3/2)·P·L·x² + C₁
+// donde C₁ = (P·L³)/2 - E·I·δ_max = 0 en el punto de deflexión máxima.
+//
+// Para hacerlo concreto y educativo, usamos la forma directa:
+// f(x) = w·x⁴/(24·E·I) - w·L·x³/(12·E·I) + w·L³·x/(24·E·I) - δ_obj = 0
+// Buscamos x donde la deflexión elástica alcanza el valor objetivo δ_obj.
+
+export default function AnalizadorEstructura() {
   const [params, setParams] = useState({
-    rho: 5000,    // Densidad poblacional (hab/km²)
-    beta: 0.5,    // Tasa vehicular (vehículos/hab)
-    k: 1000,      // Multa base ($)
-    L: 4500,      // Multa objetivo ($)
-    alpha: 100,   // Sensibilidad al riesgo
+    E: 200,        // Módulo de elasticidad (GPa) — acero estructural
+    I: 0.0004,     // Momento de inercia (m⁴)
+    w: 15000,      // Carga distribuida (N/m)
+    L: 6,          // Longitud de la viga (m)
+    delta: 0.01,   // Deflexión objetivo (m)
+    x0: 1.0,       // Primer punto inicial
+    x1: 2.5,       // Segundo punto inicial
   });
 
   const [result, setResult] = useState(null);
   const [showAllIter, setShowAllIter] = useState(false);
 
-  // ─── Motor Newton-Raphson ─────────────────────────────────────────────────
-  const calcularEquilibrio = () => {
-    const { rho, beta, k, L, alpha } = params;
+  // ─── Motor Secante ────────────────────────────────────────────────────────
+  const calcularPosicion = () => {
+    const { E, I, w, L, delta, x0, x1 } = params;
 
-    if (L <= k || rho <= 0 || beta <= 0 || alpha <= 0) {
-      setResult(null);
-      return;
-    }
+    const EI = E * 1e9 * I; // convertir GPa a Pa
+    if (EI <= 0 || w <= 0 || L <= 0) { setResult(null); return; }
 
-    // f(σ) = k + α·(ρ·β / σ) - L = 0
-    // Despejando σ: σ* = α·ρ·β / (L - k)
-    const f = (s) => k + (alpha * (rho * beta) / s) - L;
-    const fDeriv = (s) => -(alpha * (rho * beta)) / (s * s);
+    // Ecuación de la elástica: y(x) = w/(24EI) * (x⁴ - 2Lx³ + L³x)
+    // f(x) = y(x) - δ_obj = 0
+    const f = (x) =>
+      (w / (24 * EI)) * (Math.pow(x, 4) - 2 * L * Math.pow(x, 3) + Math.pow(L, 3) * x) - delta;
 
-    let sigma = 5.0;
-    const tol = 0.0001;
+    let xPrev = parseFloat(x0);
+    let xCurr = parseFloat(x1);
+    const tol = 0.000001;
     const iterations = [];
     let converged = false;
 
     for (let i = 0; i < 50; i++) {
-      const y = f(sigma);
-      const d = fDeriv(sigma);
-      if (Math.abs(d) < 1e-10) break;
+      const f0 = f(xPrev);
+      const f1 = f(xCurr);
+      const denom = f1 - f0;
 
-      const nextSigma = sigma - y / d;
-      if (!isFinite(nextSigma) || nextSigma <= 0) break;
+      if (Math.abs(denom) < 1e-14) break;
 
-      const error = Math.abs((nextSigma - sigma) / nextSigma) * 100;
+      const xNext = xCurr - f1 * (xCurr - xPrev) / denom;
+      if (!isFinite(xNext)) break;
+
+      const err = Math.abs((xNext - xCurr) / xNext) * 100;
+
       iterations.push({
         n: i + 1,
-        sigma: sigma.toFixed(6),
-        fs: y.toFixed(6),
-        fpx: d.toFixed(6),
-        error: error.toFixed(4),
-        converged: error < tol,
+        x0: xPrev.toFixed(6),
+        x1: xCurr.toFixed(6),
+        x2: xNext.toFixed(6),
+        fx2: f(xNext).toFixed(8),
+        err: err.toFixed(6),
+        converged: err < tol * 100,
       });
 
-      if (error < tol) {
+      if (err < tol * 100) {
         converged = true;
-        sigma = nextSigma;
+        xCurr = xNext;
         break;
       }
-      sigma = nextSigma;
+
+      xPrev = xCurr;
+      xCurr = xNext;
     }
 
-    setResult({ root: sigma, iterations, converged, totalIter: iterations.length });
+    // Deflexión máxima real (en x = L/2 para carga uniforme)
+    const xMax = L / 2;
+    const deflexionMax = (w / (24 * EI)) *
+      (Math.pow(xMax, 4) - 2 * L * Math.pow(xMax, 3) + Math.pow(L, 3) * xMax);
+
+    setResult({
+      root: xCurr,
+      iterations,
+      converged,
+      totalIter: iterations.length,
+      deflexionMax,
+      EI,
+    });
   };
 
   useEffect(() => {
-    calcularEquilibrio();
+    calcularPosicion();
   }, [params]);
 
-  // ─── Puntos para el gráfico ───────────────────────────────────────────────
+  // ─── Puntos para el gráfico: curva elástica y(x) ─────────────────────────
   const graphPoints = useMemo(() => {
-    if (!result) return [];
-    const root = result.root;
-    const start = Math.max(0.5, root - root * 0.6);
-    const end = root + root * 0.6;
-    const steps = 80;
+    const { E, I, w, L } = params;
+    const EI = E * 1e9 * I;
+    if (EI <= 0 || L <= 0) return [];
+    const steps = 100;
     const points = [];
     for (let i = 0; i <= steps; i++) {
-      const s = start + (i / steps) * (end - start);
-      const val = params.k + (params.alpha * (params.rho * params.beta) / s) - params.L;
-      if (isFinite(val) && Math.abs(val) < 1e6) {
-        points.push({ x: parseFloat(s.toFixed(3)), y: parseFloat(val.toFixed(3)) });
+      const x = (i / steps) * L;
+      const y = (w / (24 * EI)) * (Math.pow(x, 4) - 2 * L * Math.pow(x, 3) + Math.pow(L, 3) * x);
+      if (isFinite(y)) {
+        points.push({ x: parseFloat(x.toFixed(3)), y: parseFloat(y.toFixed(6)) });
       }
     }
     return points;
-  }, [params, result]);
+  }, [params]);
 
   const displayedIter = showAllIter
     ? result?.iterations
@@ -105,22 +133,23 @@ export default function SimuladorMultas() {
       <div style={descBoxStyle}>
         <div style={descHeaderStyle}>
           <span style={eyebrowStyle}>Modelo Matemático</span>
-          <span style={{ ...tagStyle, color: C.teal, background: "rgba(108,189,181,0.1)", border: "1px solid rgba(108,189,181,0.3)" }}>
-            Newton-Raphson
+          <span style={{ ...tagStyle, color: "#6a8a6a", background: "rgba(200,214,191,0.15)", border: "1px solid rgba(200,214,191,0.4)" }}>
+            Secante
           </span>
         </div>
         <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.8, margin: "10px 0 6px" }}>
-          Dado un territorio con densidad <strong style={{ color: C.text }}>ρ</strong> hab/km² y tasa
-          vehicular <strong style={{ color: C.text }}>β</strong>, el modelo busca la densidad óptima de
-          infraestructura de control <strong style={{ color: C.text }}>σ*</strong> tal que el costo de
-          operación se equilibre con la multa objetivo <strong style={{ color: C.text }}>L</strong>:
+          Dada una viga simplemente apoyada de longitud <strong style={{ color: C.text }}>L</strong> bajo
+          carga distribuida <strong style={{ color: C.text }}>w</strong>, la ecuación de la elástica
+          describe la deflexión en cada punto <strong style={{ color: C.text }}>x</strong>:
         </p>
         <div style={formulaBoxStyle}>
-          f(σ) = k + α · (ρ · β / σ) − L = 0
+          y(x) = w / (24·E·I) · (x⁴ − 2L·x³ + L³·x)
         </div>
-        <p style={{ fontSize: 11, color: C.muted, lineHeight: 1.7, marginTop: 8 }}>
-          El método de <strong style={{ color: C.text }}>Newton-Raphson</strong> itera usando la derivada
-          analítica f′(σ) = −α·ρ·β / σ² para converger cuadráticamente a la solución.
+        <p style={{ fontSize: 11, color: C.muted, lineHeight: 1.7, marginTop: 10 }}>
+          Se busca la posición <strong style={{ color: C.text }}>x*</strong> donde la deflexión iguala
+          el valor objetivo δ, resolviendo <strong style={{ color: C.text }}>f(x) = y(x) − δ = 0</strong>.{" "}
+          El método de <strong style={{ color: C.text }}>Secante</strong> aproxima la derivada usando
+          dos puntos iniciales x₀ y x₁, sin necesidad de calcular f′(x) analíticamente.
         </p>
       </div>
 
@@ -130,58 +159,69 @@ export default function SimuladorMultas() {
         {/* ── Panel de Configuración ── */}
         <div style={panelStyle}>
           <div style={panelHeaderStyle}>
-            <span style={eyebrowStyle}>Variables Urbanas</span>
+            <span style={eyebrowStyle}>Parámetros Estructurales</span>
             <span style={{ ...tagStyle, color: "#6a8a6a", background: "rgba(200,214,191,0.15)" }}>
-              Modelo 1.0
+              Viga
             </span>
           </div>
           <div style={{ padding: 20 }}>
 
-            <SectionLabel text="Población" />
+            <SectionLabel text="Material" />
             <Field
-              label="Densidad poblacional ρ (hab/km²)"
-              value={params.rho}
-              onChange={v => setParams({ ...params, rho: v })}
-              hint="Habitantes por kilómetro cuadrado"
+              label="Módulo de elasticidad E (GPa)"
+              value={params.E}
+              onChange={v => setParams({ ...params, E: v })}
+              hint="Acero ≈ 200 GPa · Hormigón ≈ 30 GPa"
+              step={10}
             />
             <Field
-              label="Tasa vehicular β (veh/hab)"
-              value={params.beta}
-              onChange={v => setParams({ ...params, beta: v })}
-              hint="Vehículos por habitante (0.1 – 2.0)"
-              step={0.05}
+              label="Momento de inercia I (m⁴)"
+              value={params.I}
+              onChange={v => setParams({ ...params, I: v })}
+              hint="Depende del perfil transversal"
+              step={0.0001}
             />
 
             <div style={dividerStyle} />
-            <SectionLabel text="Economía" />
+            <SectionLabel text="Carga y Geometría" />
             <Field
-              label="Multa base k ($)"
-              value={params.k}
-              onChange={v => setParams({ ...params, k: v })}
-              hint="Costo base por infracción"
+              label="Carga distribuida w (N/m)"
+              value={params.w}
+              onChange={v => setParams({ ...params, w: v })}
+              hint="Carga uniforme sobre la viga"
+              step={500}
             />
             <Field
-              label="Multa objetivo L ($)"
+              label="Longitud de la viga L (m)"
               value={params.L}
               onChange={v => setParams({ ...params, L: v })}
-              hint="Debe ser mayor que k"
+              hint="Distancia entre apoyos"
+              step={0.5}
+            />
+            <Field
+              label="Deflexión objetivo δ (m)"
+              value={params.delta}
+              onChange={v => setParams({ ...params, delta: v })}
+              hint="Valor de deflexión a encontrar"
+              step={0.001}
             />
 
             <div style={dividerStyle} />
-            <SectionLabel text="Modelo" />
+            <SectionLabel text="Puntos Iniciales (Secante)" />
             <Field
-              label="Sensibilidad al riesgo α"
-              value={params.alpha}
-              onChange={v => setParams({ ...params, alpha: v })}
-              hint="Factor de ajuste del modelo"
+              label="x₀ (m)"
+              value={params.x0}
+              onChange={v => setParams({ ...params, x0: v })}
+              hint="Primer punto dentro de [0, L]"
+              step={0.1}
             />
-
-            {/* Advertencia si L <= k */}
-            {params.L <= params.k && (
-              <div style={warnStyle}>
-                ⚠ La multa objetivo L debe ser mayor que la multa base k.
-              </div>
-            )}
+            <Field
+              label="x₁ (m)"
+              value={params.x1}
+              onChange={v => setParams({ ...params, x1: v })}
+              hint="Segundo punto dentro de [0, L]"
+              step={0.1}
+            />
 
           </div>
         </div>
@@ -214,40 +254,55 @@ export default function SimuladorMultas() {
                   <div style={{ width: 6, height: 6, borderRadius: "50%", background: result.converged ? C.teal : "#d4a84b", flexShrink: 0 }} />
                   <span style={{ color: result.converged ? C.teal : "#d4a84b", fontSize: 10, letterSpacing: "1px", textTransform: "uppercase" }}>
                     {result.converged
-                      ? `Equilibrio hallado · σ* ≈ ${result.root.toFixed(4)}`
+                      ? `Posición hallada · x* ≈ ${result.root.toFixed(4)} m`
                       : `Sin convergencia tras ${result.totalIter} iteraciones`}
                   </span>
                 </div>
 
-                {/* Gráfico */}
+                {/* Métricas rápidas */}
+                <div style={metricsRowStyle}>
+                  <Metric label="Posición x*" value={`${result.root.toFixed(4)} m`} highlight />
+                  <Metric label="Deflexión máx." value={`${(result.deflexionMax * 1000).toFixed(2)} mm`} />
+                  <Metric label="Rigidez E·I" value={`${(result.EI / 1e6).toFixed(1)} MN·m²`} />
+                </div>
+
+                {/* Curva Elástica */}
                 <div style={graphContainerStyle}>
                   <div style={{ fontSize: 9, letterSpacing: "1.5px", textTransform: "uppercase", color: C.muted, marginBottom: 8 }}>
-                    f(σ) = k + α·(ρ·β/σ) − L
+                    Curva elástica y(x) · deflexión en metros
                   </div>
                   <ResponsiveContainer width="100%" height={175}>
-                    <LineChart data={graphPoints} margin={{ top: 4, right: 16, left: -20, bottom: 0 }}>
+                    <LineChart data={graphPoints} margin={{ top: 4, right: 16, left: -10, bottom: 0 }}>
                       <CartesianGrid stroke={C.border} strokeDasharray="4 4" />
-                      <XAxis dataKey="x" tick={{ fontSize: 9, fill: C.muted, fontFamily: "'DM Mono', monospace" }} />
+                      <XAxis dataKey="x" tick={{ fontSize: 9, fill: C.muted, fontFamily: "'DM Mono', monospace" }} label={{ value: "x (m)", position: "insideBottomRight", offset: -5, fontSize: 9, fill: C.muted }} />
                       <YAxis tick={{ fontSize: 9, fill: C.muted, fontFamily: "'DM Mono', monospace" }} />
                       <Tooltip
                         contentStyle={{ fontSize: 10, borderRadius: 8, fontFamily: "'DM Mono', monospace", border: `1px solid ${C.border}`, background: C.surface }}
-                        labelFormatter={(v) => `σ = ${v}`}
-                        formatter={(v) => [`f(σ) = ${v}`, ""]}
+                        labelFormatter={(v) => `x = ${v} m`}
+                        formatter={(v) => [`y = ${v} m`, ""]}
                       />
-                      <ReferenceLine y={0} stroke={C.muted} strokeWidth={1} />
                       <ReferenceLine
-                        x={parseFloat(result.root.toFixed(3))}
-                        stroke={C.teal}
+                        y={params.delta}
+                        stroke={C.sage}
                         strokeDasharray="5 3"
                         strokeWidth={1.5}
-                        label={{ value: `σ*=${result.root.toFixed(2)}`, position: "top", fontSize: 9, fill: C.teal }}
+                        label={{ value: `δ=${params.delta}`, position: "right", fontSize: 9, fill: C.muted }}
                       />
-                      <Line type="monotone" dataKey="y" stroke={C.teal} strokeWidth={2} dot={false} connectNulls={false} />
+                      {result.converged && (
+                        <ReferenceLine
+                          x={parseFloat(result.root.toFixed(3))}
+                          stroke={C.teal}
+                          strokeDasharray="5 3"
+                          strokeWidth={1.5}
+                          label={{ value: `x*=${result.root.toFixed(2)}`, position: "top", fontSize: 9, fill: C.teal }}
+                        />
+                      )}
+                      <Line type="monotone" dataKey="y" stroke={C.teal} strokeWidth={2} dot={false} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
 
-                {/* Tabla de Iteraciones con scroll */}
+                {/* Tabla de Iteraciones */}
                 <div style={{ marginTop: 20 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                     <span style={eyebrowStyle}>Tabla de Iteraciones</span>
@@ -258,12 +313,11 @@ export default function SimuladorMultas() {
                       {showAllIter ? "Mostrar últimas 5" : `Ver todas (${result.iterations.length})`}
                     </button>
                   </div>
-
                   <div style={{ maxHeight: 220, overflowY: "auto", border: `1px solid ${C.border}`, borderRadius: 8 }}>
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11, fontFamily: "'DM Mono', monospace" }}>
                       <thead style={{ position: "sticky", top: 0, background: C.surface, zIndex: 1 }}>
                         <tr>
-                          {["n", "σₙ", "f(σₙ)", "f′(σₙ)", "Error %"].map(h => (
+                          {["n", "x₀", "x₁", "x₂", "f(x₂)", "Error %"].map(h => (
                             <th key={h} style={thStyle}>{h}</th>
                           ))}
                         </tr>
@@ -272,11 +326,12 @@ export default function SimuladorMultas() {
                         {displayedIter.map((row, i) => (
                           <tr key={i} style={{ background: row.converged ? "rgba(108,189,181,0.07)" : "transparent" }}>
                             <td style={tdStyle}>{row.n}</td>
-                            <td style={tdStyle}>{row.sigma}</td>
-                            <td style={tdStyle}>{row.fs}</td>
-                            <td style={tdStyle}>{row.fpx}</td>
+                            <td style={tdStyle}>{row.x0}</td>
+                            <td style={tdStyle}>{row.x1}</td>
+                            <td style={tdStyle}>{row.x2}</td>
+                            <td style={tdStyle}>{row.fx2}</td>
                             <td style={{ ...tdStyle, color: row.converged ? C.teal : C.text, fontWeight: row.converged ? 500 : 400 }}>
-                              {row.error === "0.0000" ? "—" : `${row.error}%`}
+                              {row.err === "0.000000" ? "—" : `${row.err}%`}
                             </td>
                           </tr>
                         ))}
@@ -289,16 +344,18 @@ export default function SimuladorMultas() {
                 <div style={aiBoxStyle}>
                   <div style={aiLabelStyle}>
                     <span style={{ width: 4, height: 4, borderRadius: "50%", background: C.sage, display: "inline-block", marginRight: 6 }} />
-                    Interpretación del Resultado
+                    Interpretación Estructural
                   </div>
                   <p style={{ margin: 0, fontSize: 11, color: C.muted, lineHeight: 1.8 }}>
-                    Para una zona con <strong style={{ color: C.text }}>{params.rho} hab/km²</strong> y tasa
-                    vehicular <strong style={{ color: C.text }}>β = {params.beta}</strong>, el modelo
-                    converge en <strong style={{ color: C.text }}>{result.totalIter} iteraciones</strong> a
-                    una densidad óptima de infraestructura de{" "}
-                    <strong style={{ color: C.teal }}>σ* = {result.root.toFixed(4)}</strong> dispositivos/km²,
-                    punto en el que el costo operativo se equilibra con la multa objetivo de{" "}
-                    <strong style={{ color: C.text }}>${params.L}</strong>.
+                    La viga de <strong style={{ color: C.text }}>{params.L} m</strong> con
+                    E = <strong style={{ color: C.text }}>{params.E} GPa</strong> e
+                    I = <strong style={{ color: C.text }}>{params.I} m⁴</strong> alcanza
+                    la deflexión objetivo de <strong style={{ color: C.text }}>{params.delta * 1000} mm</strong> en{" "}
+                    <strong style={{ color: C.teal }}>x* = {result.root.toFixed(4)} m</strong> desde el apoyo.
+                    La deflexión máxima (en L/2) es{" "}
+                    <strong style={{ color: C.text }}>{(result.deflexionMax * 1000).toFixed(3)} mm</strong>.
+                    El método Secante convergió en{" "}
+                    <strong style={{ color: C.text }}>{result.totalIter} iteraciones</strong> sin requerir derivada analítica.
                   </p>
                 </div>
               </>
@@ -316,6 +373,15 @@ function SectionLabel({ text }) {
   return (
     <div style={{ fontSize: 8, letterSpacing: "2.5px", textTransform: "uppercase", color: C.teal, marginBottom: 10, marginTop: 4 }}>
       {text}
+    </div>
+  );
+}
+
+function Metric({ label, value, highlight }) {
+  return (
+    <div style={{ background: highlight ? "rgba(108,189,181,0.08)" : C.bg, border: `1px solid ${highlight ? "rgba(108,189,181,0.3)" : C.border}`, borderRadius: 8, padding: "10px 14px", flex: 1 }}>
+      <div style={{ fontSize: 8, letterSpacing: "2px", textTransform: "uppercase", color: C.muted, marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 14, color: highlight ? C.teal : C.text, fontFamily: "'DM Mono', monospace" }}>{value}</div>
     </div>
   );
 }
@@ -352,14 +418,14 @@ const eyebrowStyle = { fontSize: 9, letterSpacing: "2.5px", textTransform: "uppe
 const tagStyle = { fontSize: 9, letterSpacing: "1px", textTransform: "uppercase", padding: "3px 10px", borderRadius: 20 };
 const dividerStyle = { borderTop: `1px solid ${C.border}`, margin: "16px 0" };
 const statusBarStyle = { display: "flex", alignItems: "center", gap: 8, padding: "9px 13px", borderRadius: 8, marginBottom: 16 };
+const metricsRowStyle = { display: "flex", gap: 10, marginBottom: 16 };
 const graphContainerStyle = { background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 10px 6px", marginBottom: 4 };
-const placeholderStyle = { display: "flex", alignItems: "center", justifyContent: "center", minHeight: 200, color: C.muted };
+const placeholderStyle = { display: "flex", alignItems: "center", justifyContent: "center", minHeight: 200 };
 const aiBoxStyle = { padding: "14px 16px", background: "rgba(200,214,191,0.15)", border: "1px solid rgba(200,214,191,0.4)", borderRadius: 8, marginTop: 16 };
 const aiLabelStyle = { fontSize: 9, letterSpacing: "2px", textTransform: "uppercase", color: "#6a8a6a", marginBottom: 6, display: "flex", alignItems: "center" };
-const warnStyle = { padding: "8px 12px", background: "rgba(220,100,80,0.08)", border: "1px solid rgba(220,100,80,0.2)", borderRadius: 8, fontSize: 10, color: "#c06050", lineHeight: 1.6, marginTop: 8 };
 const toggleBtnStyle = { fontSize: 9, letterSpacing: "1.5px", textTransform: "uppercase", color: C.teal, background: "transparent", border: `1px solid rgba(108,189,181,0.4)`, borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontFamily: "'DM Mono', monospace" };
-const descBoxStyle = { background: C.surface, border: `1px solid ${C.border}`, borderLeft: `3px solid ${C.teal}`, borderRadius: 8, padding: "18px 20px", marginBottom: 24 };
+const descBoxStyle = { background: C.surface, border: `1px solid ${C.border}`, borderLeft: `3px solid ${C.sage}`, borderRadius: 8, padding: "18px 20px", marginBottom: 24 };
 const descHeaderStyle = { display: "flex", justifyContent: "space-between", alignItems: "center" };
-const formulaBoxStyle = { background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 16px", fontSize: 13, letterSpacing: "0.5px", color: C.dark, fontFamily: "'DM Mono', monospace", marginTop: 10 };
+const formulaBoxStyle = { background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 16px", fontSize: 12, letterSpacing: "0.5px", color: C.dark, fontFamily: "'DM Mono', monospace", marginTop: 10 };
 const thStyle = { fontSize: 9, letterSpacing: "1.5px", textTransform: "uppercase", color: C.muted, textAlign: "left", padding: "10px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 500, whiteSpace: "nowrap" };
 const tdStyle = { padding: "9px 12px", borderBottom: `1px solid rgba(221,219,200,0.5)`, color: C.text, fontSize: 11 };
