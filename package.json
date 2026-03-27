@@ -18,7 +18,8 @@
     "pg": "^8.20.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "recharts": "^3.8.0"
+    "recharts": "^3.8.0",
+    "helmet": "^8.1.0"
   },
   "devDependencies": {
     "@eslint/css": "^1.0.0",
