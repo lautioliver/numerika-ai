@@ -48,8 +48,8 @@ const GuideAcordion = ({ methodId, funcExpr }) => {
   const guide = METHOD_GUIDE[methodId];
   if (!guide) return null;
 
-  const isClosed  = methodId === "biseccion" || methodId === "reglafalsa";
-  const isNewton  = methodId === "newton";
+  const isClosed = methodId === "biseccion" || methodId === "reglafalsa";
+  const isNewton = methodId === "newton";
   const isSecante = methodId === "secante";
   const isPtoFijo = methodId === "puntofijo";
 
@@ -62,7 +62,7 @@ const GuideAcordion = ({ methodId, funcExpr }) => {
       >
         <span className="stepbystep-toggle-left">
           <span className="stepbystep-arrow">{open ? "▾" : "▸"}</span>
-          Procedimiento y ejemplo de cálculo
+          Procedimiento de Resolución
         </span>
         <span className="stepbystep-badge">
           {open ? "Cerrar" : "Ver detalle"}
@@ -89,40 +89,6 @@ const GuideAcordion = ({ methodId, funcExpr }) => {
           </div>
 
           {/* Ejemplo numérico */}
-          <div className="stepbystep-section">
-            <div className="stepbystep-section-title">
-              Ejemplo numérico
-              {funcExpr && (
-                <span className="stepbystep-func"> · f(x) = {funcExpr}</span>
-              )}
-            </div>
-            <p className="stepbystep-enunciado">{guide.ejemplo.enunciado}</p>
-
-            <div className="table-wrap" style={{ marginTop: "10px" }}>
-              <table className="iter-table">
-                <thead>
-                  <tr>
-                    {isClosed  && <><th>n</th><th>a</th><th>b</th><th>c</th><th>f(c)</th><th>err (%)</th><th>nota</th></>}
-                    {isNewton  && <><th>n</th><th>xₙ</th><th>f(xₙ)</th><th>f′(xₙ)</th><th>xₙ₊₁</th><th>err (%)</th><th>nota</th></>}
-                    {isSecante && <><th>n</th><th>x₀</th><th>x₁</th><th>x₂</th><th>f(x₂)</th><th>err (%)</th><th>nota</th></>}
-                    {isPtoFijo && <><th>n</th><th>xₙ</th><th>g(xₙ)</th><th>err (%)</th><th>nota</th></>}
-                  </tr>
-                </thead>
-                <tbody>
-                  {guide.ejemplo.pasos.map((row, i) => (
-                    <tr key={i}>
-                      {isClosed  && <><td>{row.n}</td><td>{row.a}</td><td>{row.b}</td><td>{row.c}</td><td>{row.fc}</td><td>{row.err}</td><td className="stepbystep-nota">{row.nota}</td></>}
-                      {isNewton  && <><td>{row.n}</td><td>{row.x}</td><td>{row.fx}</td><td>{row.fpx}</td><td>{row.x1}</td><td>{row.err}</td><td className="stepbystep-nota">{row.nota}</td></>}
-                      {isSecante && <><td>{row.n}</td><td>{row.x0}</td><td>{row.x1}</td><td>{row.x2}</td><td>{row.fx2}</td><td>{row.err}</td><td className="stepbystep-nota">{row.nota}</td></>}
-                      {isPtoFijo && <><td>{row.n}</td><td>{row.x}</td><td>{row.gx}</td><td>{row.err}</td><td className="stepbystep-nota">{row.nota}</td></>}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <p className="stepbystep-conclusion">{guide.ejemplo.conclusion}</p>
-          </div>
 
         </div>
       )}
@@ -137,19 +103,19 @@ export const SolverPage = () => {
   const activeMethod = methodId || "biseccion";
   const selected = METHODS.find((m) => m.id === activeMethod);
 
-  const [funcExpr,  setFuncExpr]  = useState("x^2 - x - 2");
-  const [aValue,    setAValue]    = useState("1");
-  const [bValue,    setBValue]    = useState("3");
-  const [x0Value,   setX0Value]   = useState("1.5");
-  const [x1Value,   setX1Value]   = useState("2.5");
+  const [funcExpr, setFuncExpr] = useState(" ");
+  const [aValue, setAValue] = useState("1");
+  const [bValue, setBValue] = useState("3");
+  const [x0Value, setX0Value] = useState("1.5");
+  const [x1Value, setX1Value] = useState("2.5");
   const [tolerance, setTolerance] = useState("0.0001");
 
-  const [scanMin,       setScanMin]       = useState("");
-  const [scanMax,       setScanMax]       = useState("");
+  const [scanMin, setScanMin] = useState("");
+  const [scanMax, setScanMax] = useState("");
   const [showScanRange, setShowScanRange] = useState(false);
 
-  const [result,  setResult]  = useState(null);
-  const [error,   setError]   = useState(null);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   // ── Contexto de la Asistente IKA ──
@@ -247,11 +213,11 @@ export const SolverPage = () => {
 
       let res;
       switch (activeMethod) {
-        case "biseccion":  res = biseccion(funcExpr, aValue, bValue, tol);     break;
-        case "reglafalsa": res = reglaFalsa(funcExpr, aValue, bValue, tol);    break;
-        case "newton":     res = newtonRaphson(funcExpr, x0Value, tol);        break;
-        case "secante":    res = secante(funcExpr, x0Value, x1Value, tol);     break;
-        case "puntofijo":  res = puntoFijo(funcExpr, x0Value, tol);            break;
+        case "biseccion": res = biseccion(funcExpr, aValue, bValue, tol); break;
+        case "reglafalsa": res = reglaFalsa(funcExpr, aValue, bValue, tol); break;
+        case "newton": res = newtonRaphson(funcExpr, x0Value, tol); break;
+        case "secante": res = secante(funcExpr, x0Value, x1Value, tol); break;
+        case "puntofijo": res = puntoFijo(funcExpr, x0Value, tol); break;
         default:
           setError("Método no seleccionado.");
           setLoading(false);
@@ -340,11 +306,11 @@ export const SolverPage = () => {
       {selected && (
         <div className="method-desc">
           {{
-            biseccion:  "Divide [a,b] a la mitad. Convergencia garantizada si f(a)·f(b) < 0.",
+            biseccion: "Divide [a,b] a la mitad. Convergencia garantizada si f(a)·f(b) < 0.",
             reglafalsa: "Interpolación lineal entre a y b. Más rápido que bisección en funciones suaves.",
-            newton:     "Usa f′(x) numérica para convergencia cuadrática. Muy rápido cerca de la raíz.",
-            secante:    "Aproxima f′(x) con dos puntos. No necesita derivada analítica.",
-            puntofijo:  "Itera x = g(x). Converge si |g′(x)| < 1 en el entorno de la raíz.",
+            newton: "Usa f′(x) numérica para convergencia cuadrática. Muy rápido cerca de la raíz.",
+            secante: "Aproxima f′(x) con dos puntos. No necesita derivada analítica.",
+            puntofijo: "Itera x = g(x). Converge si |g′(x)| < 1 en el entorno de la raíz.",
           }[activeMethod]}
         </div>
       )}
@@ -496,8 +462,8 @@ export const SolverPage = () => {
                     <thead>
                       <tr>
                         {(activeMethod === "biseccion" || activeMethod === "reglafalsa") && <><th>n</th><th>a</th><th>b</th><th>c</th><th>f(c)</th><th>err (%)</th></>}
-                        {activeMethod === "newton"    && <><th>n</th><th>xₙ</th><th>f(xₙ)</th><th>f′(xₙ)</th><th>xₙ₊₁</th><th>err (%)</th></>}
-                        {activeMethod === "secante"   && <><th>n</th><th>x₀</th><th>x₁</th><th>x₂</th><th>f(x₂)</th><th>err (%)</th></>}
+                        {activeMethod === "newton" && <><th>n</th><th>xₙ</th><th>f(xₙ)</th><th>f′(xₙ)</th><th>xₙ₊₁</th><th>err (%)</th></>}
+                        {activeMethod === "secante" && <><th>n</th><th>x₀</th><th>x₁</th><th>x₂</th><th>f(x₂)</th><th>err (%)</th></>}
                         {activeMethod === "puntofijo" && <><th>n</th><th>xₙ</th><th>g(xₙ)</th><th>err (%)</th></>}
                       </tr>
                     </thead>
@@ -505,8 +471,8 @@ export const SolverPage = () => {
                       {result.iterations.map((row, idx) => (
                         <tr key={idx} className={row.converged ? "converged" : ""}>
                           {(activeMethod === "biseccion" || activeMethod === "reglafalsa") && <><td>{row.n}</td><td>{row.a}</td><td>{row.b}</td><td>{row.c}</td><td>{row.fc}</td><td>{row.err !== null ? `${row.err}%` : "—"}</td></>}
-                          {activeMethod === "newton"    && <><td>{row.n}</td><td>{row.x}</td><td>{row.fx}</td><td>{row.fpx}</td><td>{row.x1}</td><td>{row.err}%</td></>}
-                          {activeMethod === "secante"   && <><td>{row.n}</td><td>{row.x0}</td><td>{row.x1}</td><td>{row.x2}</td><td>{row.fx2}</td><td>{row.err}%</td></>}
+                          {activeMethod === "newton" && <><td>{row.n}</td><td>{row.x}</td><td>{row.fx}</td><td>{row.fpx}</td><td>{row.x1}</td><td>{row.err}%</td></>}
+                          {activeMethod === "secante" && <><td>{row.n}</td><td>{row.x0}</td><td>{row.x1}</td><td>{row.x2}</td><td>{row.fx2}</td><td>{row.err}%</td></>}
                           {activeMethod === "puntofijo" && <><td>{row.n}</td><td>{row.x}</td><td>{row.gx}</td><td>{row.err}%</td></>}
                         </tr>
                       ))}
@@ -532,13 +498,13 @@ export const SolverPage = () => {
                     <p className="ai-text">
                       {aiError
                         ? `${result.converged
-                            ? `El método ${selected.name} convergió en ${result.totalIter} iteración${result.totalIter !== 1 ? "es" : ""} a la raíz x = ${result.root}.`
-                            : `El método alcanzó el máximo de iteraciones (${result.totalIter}) sin converger.`
-                          } (IA no disponible: ${aiError})`
+                          ? `El método ${selected.name} convergió en ${result.totalIter} iteración${result.totalIter !== 1 ? "es" : ""} a la raíz x = ${result.root}.`
+                          : `El método alcanzó el máximo de iteraciones (${result.totalIter}) sin converger.`
+                        } (IA no disponible: ${aiError})`
                         : (result.converged
-                            ? `El método ${selected.name} convergió en ${result.totalIter} iteración${result.totalIter !== 1 ? "es" : ""} a la raíz x = ${result.root}. La tolerancia fue satisfecha.`
-                            : `El método alcanzó el máximo de iteraciones (${result.totalIter}) sin converger. Intentá ajustar los parámetros.`
-                          )
+                          ? `El método ${selected.name} convergió en ${result.totalIter} iteración${result.totalIter !== 1 ? "es" : ""} a la raíz x = ${result.root}. La tolerancia fue satisfecha.`
+                          : `El método alcanzó el máximo de iteraciones (${result.totalIter}) sin converger. Intentá ajustar los parámetros.`
+                        )
                       }
                     </p>
                   )}
