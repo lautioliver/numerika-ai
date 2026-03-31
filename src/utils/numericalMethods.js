@@ -1,77 +1,120 @@
 /**
  * NumérikaAI — Motor de Métodos Numéricos
- * Todos los métodos retornan: { iterations, root, converged, error, steps }
+ * 
+ * Usa math.js para evaluar expresiones de forma segura (sin new Function).
+ * Soporta derivada simbólica para Newton-Raphson con fallback numérico.
+ * 
+ * Todos los métodos retornan: { iterations, root, converged, totalIter, error }
  */
+
+import { compile, derivative as mathDerivative } from "mathjs";
 
 const MAX_ITER = 100;
 
+// ─── Preprocesador de expresiones ────────────────────────────────────────────
+/**
+ * Normaliza una expresión del usuario al formato que math.js entiende.
+ * 
+ * Convierte:
+ * - sen(x)  → sin(x)    [español → inglés]
+ * - ln(x)   → log(x)    [ln = log natural en math.js]
+ * - log(x)  → log10(x)  [log del usuario = base 10]
+ * - 2x      → 2*x       [multiplicación implícita]
+ */
+function preprocessExpr(expr) {
+  let s = expr.trim();
+
+  // ── Paso 1: Funciones → tokens (evitar colisiones) ────────────────────
+  s = s.replace(/\bsen\b/gi, "__SIN__");
+  s = s.replace(/\bln\b/gi,  "__LN__");
+
+  // ── Paso 2: log del usuario → log10 (base 10) ────────────────────────
+  s = s.replace(/\blog\b/gi, "log10");
+
+  // ── Paso 3: Expandir tokens ───────────────────────────────────────────
+  s = s.replace(/__SIN__/g, "sin");
+  s = s.replace(/__LN__/g,  "log");  // math.js log = natural
+
+  return s;
+}
+
 // ─── Evaluador seguro de funciones ───────────────────────────────────────────
 /**
- * Convierte una expresión matemática ingresada por el usuario a JS válido.
- *
- * Estrategia de tokens intermedios:
- * 1. Se reemplazan las funciones por tokens únicos (__SIN__, __COS__, etc.)
- *    ANTES de hacer cualquier otra transformación. Esto evita que sustituciones
- *    posteriores toquen letras dentro de identificadores ya procesados.
- * 2. Se aplica multiplicación implícita sobre el string "limpio" de funciones.
- * 3. Finalmente se expanden los tokens a sus equivalentes Math.*.
- *
- * Bugs que esto corrige respecto a la versión anterior:
- * - sen(x) → Math.Math.sin*(x)  [sen→Math.sin, luego sin→Math.sin otra vez]
- * - ln(x)  → Math.Math.log10*(x) [ln→Math.log, luego log→Math.log10]
- * - sin(x) → Math.sin*(x)       [regex de multiplicación implícita insertaba * antes de (]
+ * Compila una expresión matemática usando math.js (sandbox seguro).
+ * Retorna la función evaluable y, si es posible, su derivada simbólica.
+ * 
+ * @param {string} expr - Expresión del usuario (ej: "x^2 - x - 2")
+ * @returns {{ fn, derivativeFn, error }}
  */
 export function parseFunction(expr) {
   try {
-    let s = expr.trim();
+    const processed = preprocessExpr(expr);
+    const compiled = compile(processed);
 
-    // ── Paso 1: Potencias ─────────────────────────────────────────────────────
-    s = s.replace(/\^/g, "**");
+    // Función principal f(x)
+    const fn = (x) => {
+      try {
+        const result = compiled.evaluate({ x });
+        return typeof result === "number" ? result : NaN;
+      } catch {
+        return NaN;
+      }
+    };
 
-    // ── Paso 2: Funciones → tokens intermedios ────────────────────────────────
-    // Orden crítico: términos más largos/específicos primero para evitar
-    // colisiones ('sen' antes de 'sin', 'ln' antes de 'log', 'sqrt' antes de 'sin')
-    s = s.replace(/\bsen\b/gi,  "__SIN__");
-    s = s.replace(/\bsin\b/gi,  "__SIN__");
-    s = s.replace(/\bcos\b/gi,  "__COS__");
-    s = s.replace(/\btan\b/gi,  "__TAN__");
-    s = s.replace(/\bsqrt\b/gi, "__SQRT__");
-    s = s.replace(/\bexp\b/gi,  "__EXP__");
-    s = s.replace(/\bln\b/gi,   "__LOG__");
-    s = s.replace(/\blog\b/gi,  "__LOG10__");
-    s = s.replace(/\bpi\b/gi,   "__PI__");
-    s = s.replace(/\be\b/g,     "__E__");     // e como constante de Euler
+    // Intentar derivada simbólica
+    let derivativeFn = null;
+    try {
+      const derived = mathDerivative(processed, "x");
+      const compiledDeriv = derived.compile();
+      derivativeFn = (x) => {
+        try {
+          const result = compiledDeriv.evaluate({ x });
+          return typeof result === "number" ? result : NaN;
+        } catch {
+          return NaN;
+        }
+      };
+    } catch {
+      // Derivada simbólica no disponible para esta expresión
+      // Se usará derivada numérica como fallback
+    }
 
-    // ── Paso 3: Multiplicación implícita ─────────────────────────────────────
-    // Solo sobre el string limpio de palabras de funciones
-    s = s.replace(/(\d)(x)/g,   "$1*$2");     // 2x → 2*x
-    s = s.replace(/(\d)\s*\(/g, "$1*(");      // 2( → 2*(  o  2 ( → 2*(
-    s = s.replace(/\)\s*\(/g,   ")*(");        // )( → )*(
-    s = s.replace(/(x)\s*\(/g,  "$1*(");       // x( → x*(  ej: x(x+1)
+    // Test de ejecución
+    const testVal = fn(1);
+    if (typeof testVal !== "number") {
+      return { fn: null, derivativeFn: null, error: "Función inválida. Revisá la sintaxis." };
+    }
 
-    // ── Paso 4: Expandir tokens → Math.* ─────────────────────────────────────
-    s = s.replace(/__SIN__/g,   "Math.sin");
-    s = s.replace(/__COS__/g,   "Math.cos");
-    s = s.replace(/__TAN__/g,   "Math.tan");
-    s = s.replace(/__SQRT__/g,  "Math.sqrt");
-    s = s.replace(/__EXP__/g,   "Math.exp");
-    s = s.replace(/__LOG__/g,   "Math.log");
-    s = s.replace(/__LOG10__/g, "Math.log10");
-    s = s.replace(/__PI__/g,    "Math.PI");
-    s = s.replace(/__E__/g,     "Math.E");
-
-     
-    const fn = new Function("x", `"use strict"; return (${s});`);
-    fn(1); // test de ejecución
-    return { fn, error: null };
+    return { fn, derivativeFn, error: null };
   } catch (e) {
-    return { fn: null, error: "Función inválida. Revisá la sintaxis." };
+    return {
+      fn: null,
+      derivativeFn: null,
+      error: `Función inválida: ${e.message || "revisá la sintaxis."}`,
+    };
   }
 }
 
-// ─── Derivada numérica (diferencias centrales) ────────────────────────────────
-function derivative(f, x, h = 1e-7) {
+// ─── Derivada numérica (fallback — diferencias centrales) ─────────────────────
+function numericalDerivative(f, x, h = 1e-7) {
   return (f(x + h) - f(x - h)) / (2 * h);
+}
+
+/**
+ * Calcula la derivada de f en el punto x.
+ * Usa derivada simbólica si está disponible, sino numérica.
+ * 
+ * @param {Function} f - Función evaluable
+ * @param {number} x - Punto donde evaluar
+ * @param {Function|null} derivativeFn - Derivada simbólica (de parseFunction)
+ */
+function getDerivative(f, x, derivativeFn) {
+  if (derivativeFn) {
+    const result = derivativeFn(x);
+    if (isFinite(result)) return result;
+  }
+  // Fallback numérico
+  return numericalDerivative(f, x);
 }
 
 // ─── 1. BISECCIÓN ─────────────────────────────────────────────────────────────
@@ -150,7 +193,7 @@ export function reglaFalsa(expr, a, b, tol = 1e-6) {
 
 // ─── 3. NEWTON-RAPHSON ────────────────────────────────────────────────────────
 export function newtonRaphson(expr, x0, tol = 1e-6) {
-  const { fn: f, error } = parseFunction(expr);
+  const { fn: f, derivativeFn, error } = parseFunction(expr);
   if (error) return { error };
 
   x0 = parseFloat(x0);
@@ -161,7 +204,7 @@ export function newtonRaphson(expr, x0, tol = 1e-6) {
 
   for (let i = 1; i <= MAX_ITER; i++) {
     const fx = f(x);
-    const fpx = derivative(f, x);
+    const fpx = getDerivative(f, x, derivativeFn);
 
     if (Math.abs(fpx) < 1e-12) return { error: "Derivada ≈ 0. El método no puede continuar en x = " + x.toFixed(4) };
 
@@ -288,9 +331,6 @@ export function getFunctionPoints(expr, xMin, xMax, n = 200) {
  * Escanea [xMin, xMax] buscando cambios de signo en f(x).
  * Cada cambio de signo indica una raíz en ese subintervalo.
  * Retorna { count, intervals: [{ a, b }] }
- *
- * SEGURIDAD: usa parseFunction() que sandboxea la expresión.
- * xMin/xMax son parseFloat-eados y validados; cap de 200 unidades.
  */
 export function detectMultipleRoots(expr, xMin, xMax, step = 0.1) {
   const { fn: f, error } = parseFunction(expr);

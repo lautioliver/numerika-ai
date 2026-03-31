@@ -4,24 +4,9 @@ import {
   Tooltip, ReferenceLine, ResponsiveContainer,
 } from "recharts";
 
-// ─── Paleta NumérikaAI ────────────────────────────────────────────────────────
-const C = {
-  cream: "#E3DFBA", sage: "#C8D6BF", teal: "#6CBDB5",
-  dark: "#1A1F1E", bg: "#f5f3e8", surface: "#faf9f2",
-  border: "#dddbc8", muted: "#7a8a82", text: "#1A1F1E",
-};
-
 // ─── Componente Principal ─────────────────────────────────────────────────────
 // Modelo: Una viga simplemente apoyada bajo carga distribuida.
 // Se busca la deflexión x (en metros) donde la curva elástica cumple f(x) = 0.
-// f(x) = E·I·y''(x) + M(x) = 0 simplificado como:
-// f(x) = P·x³ - (3/2)·P·L·x² + C₁
-// donde C₁ = (P·L³)/2 - E·I·δ_max = 0 en el punto de deflexión máxima.
-//
-// Para hacerlo concreto y educativo, usamos la forma directa:
-// f(x) = w·x⁴/(24·E·I) - w·L·x³/(12·E·I) + w·L³·x/(24·E·I) - δ_obj = 0
-// Buscamos x donde la deflexión elástica alcanza el valor objetivo δ_obj.
-
 export default function AnalizadorEstructura() {
   const [params, setParams] = useState({
     E: 200,        // Módulo de elasticidad (GPa) — acero estructural
@@ -43,7 +28,6 @@ export default function AnalizadorEstructura() {
     const EI = E * 1e9 * I; // convertir GPa a Pa
     if (EI <= 0 || w <= 0 || L <= 0) { setResult(null); return; }
 
-    // Ecuación de la elástica: y(x) = w/(24EI) * (x⁴ - 2Lx³ + L³x)
     // f(x) = y(x) - δ_obj = 0
     const f = (x) =>
       (w / (24 * EI)) * (Math.pow(x, 4) - 2 * L * Math.pow(x, 3) + Math.pow(L, 3) * x) - delta;
@@ -105,7 +89,7 @@ export default function AnalizadorEstructura() {
     calcularPosicion();
   }, [params]);
 
-  // ─── Puntos para el gráfico: curva elástica y(x) ─────────────────────────
+  // ─── Puntos para el gráfico ─────────────────────────
   const graphPoints = useMemo(() => {
     const { E, I, w, L } = params;
     const EI = E * 1e9 * I;
@@ -127,40 +111,40 @@ export default function AnalizadorEstructura() {
     : result?.iterations.slice(-5);
 
   return (
-    <div style={{ fontFamily: "'DM Mono', monospace", color: C.text }}>
+    <div className="sim-container">
 
       {/* ── Descripción del Método ─────────────────────────────────────────── */}
-      <div style={descBoxStyle}>
-        <div style={descHeaderStyle}>
-          <span style={eyebrowStyle}>Modelo Matemático</span>
-          <span style={{ ...tagStyle, color: "#6a8a6a", background: "rgba(200,214,191,0.15)", border: "1px solid rgba(200,214,191,0.4)" }}>
+      <div className="sim-desc-box sage">
+        <div className="sim-desc-header">
+          <span className="sim-eyebrow">Modelo Matemático</span>
+          <span className="sim-tag sim-tag-sage">
             Secante
           </span>
         </div>
-        <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.8, margin: "10px 0 6px" }}>
-          Dada una viga simplemente apoyada de longitud <strong style={{ color: C.text }}>L</strong> bajo
-          carga distribuida <strong style={{ color: C.text }}>w</strong>, la ecuación de la elástica
-          describe la deflexión en cada punto <strong style={{ color: C.text }}>x</strong>:
+        <p style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.8, margin: "10px 0 6px" }}>
+          Dada una viga simplemente apoyada de longitud <strong>L</strong> bajo
+          carga distribuida <strong>w</strong>, la ecuación de la elástica
+          describe la deflexión en cada punto <strong>x</strong>:
         </p>
-        <div style={formulaBoxStyle}>
+        <div className="sim-formula-box">
           y(x) = w / (24·E·I) · (x⁴ − 2L·x³ + L³·x)
         </div>
-        <p style={{ fontSize: 11, color: C.muted, lineHeight: 1.7, marginTop: 10 }}>
-          Se busca la posición <strong style={{ color: C.text }}>x*</strong> donde la deflexión iguala
-          el valor objetivo δ, resolviendo <strong style={{ color: C.text }}>f(x) = y(x) − δ = 0</strong>.{" "}
-          El método de <strong style={{ color: C.text }}>Secante</strong> aproxima la derivada usando
+        <p style={{ fontSize: 11, color: "var(--muted)", lineHeight: 1.7, marginTop: 10 }}>
+          Se busca la posición <strong>x*</strong> donde la deflexión iguala
+          el valor objetivo δ, resolviendo <strong>f(x) = y(x) − δ = 0</strong>.{" "}
+          El método de <strong>Secante</strong> aproxima la derivada usando
           dos puntos iniciales x₀ y x₁, sin necesidad de calcular f′(x) analíticamente.
         </p>
       </div>
 
       {/* ── Grid Principal ────────────────────────────────────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 20, alignItems: "start" }}>
+      <div className="sim-grid">
 
         {/* ── Panel de Configuración ── */}
-        <div style={panelStyle}>
-          <div style={panelHeaderStyle}>
-            <span style={eyebrowStyle}>Parámetros Estructurales</span>
-            <span style={{ ...tagStyle, color: "#6a8a6a", background: "rgba(200,214,191,0.15)" }}>
+        <div className="sim-panel">
+          <div className="sim-panel-header">
+            <span className="sim-eyebrow">Parámetros Estructurales</span>
+            <span className="sim-tag sim-tag-sage">
               Viga
             </span>
           </div>
@@ -182,7 +166,7 @@ export default function AnalizadorEstructura() {
               step={0.0001}
             />
 
-            <div style={dividerStyle} />
+            <div className="sim-divider" />
             <SectionLabel text="Carga y Geometría" />
             <Field
               label="Carga distribuida w (N/m)"
@@ -206,7 +190,7 @@ export default function AnalizadorEstructura() {
               step={0.001}
             />
 
-            <div style={dividerStyle} />
+            <div className="sim-divider" />
             <SectionLabel text="Puntos Iniciales (Secante)" />
             <Field
               label="x₀ (m)"
@@ -227,32 +211,31 @@ export default function AnalizadorEstructura() {
         </div>
 
         {/* ── Panel de Resultados ── */}
-        <div style={panelStyle}>
-          <div style={panelHeaderStyle}>
-            <span style={eyebrowStyle}>Resultado</span>
+        <div className="sim-panel">
+          <div className="sim-panel-header">
+            <span className="sim-eyebrow">Resultado</span>
             {result && (
-              <span style={{ fontSize: 9, color: C.muted, letterSpacing: "1px" }}>
+              <span style={{ fontSize: 9, color: "var(--muted)", letterSpacing: "1px" }}>
                 {result.totalIter} iteración{result.totalIter !== 1 ? "es" : ""}
               </span>
             )}
           </div>
           <div style={{ padding: 20 }}>
             {!result ? (
-              <div style={placeholderStyle}>
-                <p style={{ fontSize: 10, letterSpacing: "2px", textTransform: "uppercase", color: C.muted }}>
+              <div className="sim-placeholder">
+                <p className="sim-placeholder-text">
                   Ajustá los parámetros para calcular
                 </p>
               </div>
             ) : (
               <>
                 {/* Status */}
-                <div style={{
-                  ...statusBarStyle,
+                <div className="sim-status" style={{
                   background: result.converged ? "rgba(108,189,181,0.1)" : "rgba(220,180,100,0.1)",
                   border: `1px solid ${result.converged ? "rgba(108,189,181,0.3)" : "rgba(220,180,100,0.3)"}`,
                 }}>
-                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: result.converged ? C.teal : "#d4a84b", flexShrink: 0 }} />
-                  <span style={{ color: result.converged ? C.teal : "#d4a84b", fontSize: 10, letterSpacing: "1px", textTransform: "uppercase" }}>
+                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: result.converged ? "var(--teal)" : "#d4a84b", flexShrink: 0 }} />
+                  <span style={{ color: result.converged ? "var(--teal)" : "#d4a84b", fontSize: 10, letterSpacing: "1px", textTransform: "uppercase" }}>
                     {result.converged
                       ? `Posición hallada · x* ≈ ${result.root.toFixed(4)} m`
                       : `Sin convergencia tras ${result.totalIter} iteraciones`}
@@ -260,44 +243,44 @@ export default function AnalizadorEstructura() {
                 </div>
 
                 {/* Métricas rápidas */}
-                <div style={metricsRowStyle}>
+                <div className="sim-metrics-row">
                   <Metric label="Posición x*" value={`${result.root.toFixed(4)} m`} highlight />
                   <Metric label="Deflexión máx." value={`${(result.deflexionMax * 1000).toFixed(2)} mm`} />
                   <Metric label="Rigidez E·I" value={`${(result.EI / 1e6).toFixed(1)} MN·m²`} />
                 </div>
 
                 {/* Curva Elástica */}
-                <div style={graphContainerStyle}>
-                  <div style={{ fontSize: 9, letterSpacing: "1.5px", textTransform: "uppercase", color: C.muted, marginBottom: 8 }}>
+                <div className="sim-graph">
+                  <div className="sim-graph-title">
                     Curva elástica y(x) · deflexión en metros
                   </div>
                   <ResponsiveContainer width="100%" height={175}>
                     <LineChart data={graphPoints} margin={{ top: 4, right: 16, left: -10, bottom: 0 }}>
-                      <CartesianGrid stroke={C.border} strokeDasharray="4 4" />
-                      <XAxis dataKey="x" tick={{ fontSize: 9, fill: C.muted, fontFamily: "'DM Mono', monospace" }} label={{ value: "x (m)", position: "insideBottomRight", offset: -5, fontSize: 9, fill: C.muted }} />
-                      <YAxis tick={{ fontSize: 9, fill: C.muted, fontFamily: "'DM Mono', monospace" }} />
+                      <CartesianGrid stroke="var(--border)" strokeDasharray="4 4" />
+                      <XAxis dataKey="x" tick={{ fontSize: 9, fill: "var(--muted)", fontFamily: "'DM Mono', monospace" }} label={{ value: "x (m)", position: "insideBottomRight", offset: -5, fontSize: 9, fill: "var(--muted)" }} />
+                      <YAxis tick={{ fontSize: 9, fill: "var(--muted)", fontFamily: "'DM Mono', monospace" }} />
                       <Tooltip
-                        contentStyle={{ fontSize: 10, borderRadius: 8, fontFamily: "'DM Mono', monospace", border: `1px solid ${C.border}`, background: C.surface }}
+                        contentStyle={{ fontSize: 10, borderRadius: 8, fontFamily: "'DM Mono', monospace", border: `1px solid var(--border)`, background: "var(--surface)" }}
                         labelFormatter={(v) => `x = ${v} m`}
                         formatter={(v) => [`y = ${v} m`, ""]}
                       />
                       <ReferenceLine
                         y={params.delta}
-                        stroke={C.sage}
+                        stroke="#C8D6BF"
                         strokeDasharray="5 3"
                         strokeWidth={1.5}
-                        label={{ value: `δ=${params.delta}`, position: "right", fontSize: 9, fill: C.muted }}
+                        label={{ value: `δ=${params.delta}`, position: "right", fontSize: 9, fill: "var(--muted)" }}
                       />
                       {result.converged && (
                         <ReferenceLine
                           x={parseFloat(result.root.toFixed(3))}
-                          stroke={C.teal}
+                          stroke="#6CBDB5"
                           strokeDasharray="5 3"
                           strokeWidth={1.5}
-                          label={{ value: `x*=${result.root.toFixed(2)}`, position: "top", fontSize: 9, fill: C.teal }}
+                          label={{ value: `x*=${result.root.toFixed(2)}`, position: "top", fontSize: 9, fill: "#6CBDB5" }}
                         />
                       )}
-                      <Line type="monotone" dataKey="y" stroke={C.teal} strokeWidth={2} dot={false} />
+                      <Line type="monotone" dataKey="y" stroke="#6CBDB5" strokeWidth={2} dot={false} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -305,32 +288,32 @@ export default function AnalizadorEstructura() {
                 {/* Tabla de Iteraciones */}
                 <div style={{ marginTop: 20 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                    <span style={eyebrowStyle}>Tabla de Iteraciones</span>
+                    <span className="sim-eyebrow">Tabla de Iteraciones</span>
                     <button
-                      style={toggleBtnStyle}
+                      className="sim-btn-toggle"
                       onClick={() => setShowAllIter(v => !v)}
                     >
                       {showAllIter ? "Mostrar últimas 5" : `Ver todas (${result.iterations.length})`}
                     </button>
                   </div>
-                  <div style={{ maxHeight: 220, overflowY: "auto", border: `1px solid ${C.border}`, borderRadius: 8 }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11, fontFamily: "'DM Mono', monospace" }}>
-                      <thead style={{ position: "sticky", top: 0, background: C.surface, zIndex: 1 }}>
+                  <div className="sim-table-wrap">
+                    <table className="sim-table">
+                      <thead>
                         <tr>
                           {["n", "x₀", "x₁", "x₂", "f(x₂)", "Error %"].map(h => (
-                            <th key={h} style={thStyle}>{h}</th>
+                            <th key={h}>{h}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {displayedIter.map((row, i) => (
                           <tr key={i} style={{ background: row.converged ? "rgba(108,189,181,0.07)" : "transparent" }}>
-                            <td style={tdStyle}>{row.n}</td>
-                            <td style={tdStyle}>{row.x0}</td>
-                            <td style={tdStyle}>{row.x1}</td>
-                            <td style={tdStyle}>{row.x2}</td>
-                            <td style={tdStyle}>{row.fx2}</td>
-                            <td style={{ ...tdStyle, color: row.converged ? C.teal : C.text, fontWeight: row.converged ? 500 : 400 }}>
+                            <td>{row.n}</td>
+                            <td>{row.x0}</td>
+                            <td>{row.x1}</td>
+                            <td>{row.x2}</td>
+                            <td>{row.fx2}</td>
+                            <td style={{ color: row.converged ? "var(--teal)" : "var(--text)", fontWeight: row.converged ? 500 : 400 }}>
                               {row.err === "0.000000" ? "—" : `${row.err}%`}
                             </td>
                           </tr>
@@ -341,21 +324,21 @@ export default function AnalizadorEstructura() {
                 </div>
 
                 {/* Insight */}
-                <div style={aiBoxStyle}>
-                  <div style={aiLabelStyle}>
-                    <span style={{ width: 4, height: 4, borderRadius: "50%", background: C.sage, display: "inline-block", marginRight: 6 }} />
+                <div className="sim-ai-box">
+                  <div className="sim-ai-label">
+                    <span style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--sage)", display: "inline-block", marginRight: 6 }} />
                     Interpretación Estructural
                   </div>
-                  <p style={{ margin: 0, fontSize: 11, color: C.muted, lineHeight: 1.8 }}>
-                    La viga de <strong style={{ color: C.text }}>{params.L} m</strong> con
-                    E = <strong style={{ color: C.text }}>{params.E} GPa</strong> e
-                    I = <strong style={{ color: C.text }}>{params.I} m⁴</strong> alcanza
-                    la deflexión objetivo de <strong style={{ color: C.text }}>{params.delta * 1000} mm</strong> en{" "}
-                    <strong style={{ color: C.teal }}>x* = {result.root.toFixed(4)} m</strong> desde el apoyo.
+                  <p style={{ margin: 0, fontSize: 11, color: "var(--muted)", lineHeight: 1.8 }}>
+                    La viga de <strong>{params.L} m</strong> con
+                    E = <strong>{params.E} GPa</strong> e
+                    I = <strong>{params.I} m⁴</strong> alcanza
+                    la deflexión objetivo de <strong>{params.delta * 1000} mm</strong> en{" "}
+                    <strong style={{ color: "var(--teal)" }}>x* = {result.root.toFixed(4)} m</strong> desde el apoyo.
                     La deflexión máxima (en L/2) es{" "}
-                    <strong style={{ color: C.text }}>{(result.deflexionMax * 1000).toFixed(3)} mm</strong>.
+                    <strong>{(result.deflexionMax * 1000).toFixed(3)} mm</strong>.
                     El método Secante convergió en{" "}
-                    <strong style={{ color: C.text }}>{result.totalIter} iteraciones</strong> sin requerir derivada analítica.
+                    <strong>{result.totalIter} iteraciones</strong> sin requerir derivada analítica.
                   </p>
                 </div>
               </>
@@ -371,7 +354,7 @@ export default function AnalizadorEstructura() {
 // ─── Helpers de UI ────────────────────────────────────────────────────────────
 function SectionLabel({ text }) {
   return (
-    <div style={{ fontSize: 8, letterSpacing: "2.5px", textTransform: "uppercase", color: C.teal, marginBottom: 10, marginTop: 4 }}>
+    <div className="sim-section-label">
       {text}
     </div>
   );
@@ -379,53 +362,27 @@ function SectionLabel({ text }) {
 
 function Metric({ label, value, highlight }) {
   return (
-    <div style={{ background: highlight ? "rgba(108,189,181,0.08)" : C.bg, border: `1px solid ${highlight ? "rgba(108,189,181,0.3)" : C.border}`, borderRadius: 8, padding: "10px 14px", flex: 1 }}>
-      <div style={{ fontSize: 8, letterSpacing: "2px", textTransform: "uppercase", color: C.muted, marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 14, color: highlight ? C.teal : C.text, fontFamily: "'DM Mono', monospace" }}>{value}</div>
+    <div className={`sim-metric ${highlight ? 'highlight' : ''}`}>
+      <div className="sim-metric-label">{label}</div>
+      <div className="sim-metric-val">{value}</div>
     </div>
   );
 }
 
 function Field({ label, value, onChange, hint, step = 1 }) {
   return (
-    <div style={{ marginBottom: 14 }}>
-      <label style={{ display: "block", fontSize: 9, textTransform: "uppercase", letterSpacing: "1.5px", color: C.muted, marginBottom: 5 }}>
+    <div className="sim-field">
+      <label className="sim-field-label">
         {label}
       </label>
       <input
         type="number"
         step={step}
-        style={{
-          width: "100%", background: C.bg, border: `1px solid ${C.border}`,
-          borderRadius: 8, padding: "9px 12px",
-          fontFamily: "'DM Mono', monospace", fontSize: 13, color: C.text,
-          outline: "none", boxSizing: "border-box", transition: "border-color 0.2s",
-        }}
+        className="sim-field-input"
         value={value}
         onChange={e => onChange(Number(e.target.value))}
-        onFocus={e => e.target.style.borderColor = C.teal}
-        onBlur={e => e.target.style.borderColor = C.border}
       />
-      {hint && <div style={{ fontSize: 9, color: C.muted, marginTop: 3, letterSpacing: "0.3px" }}>{hint}</div>}
+      {hint && <div className="sim-field-hint">{hint}</div>}
     </div>
   );
 }
-
-// ─── Estilos ──────────────────────────────────────────────────────────────────
-const panelStyle = { background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" };
-const panelHeaderStyle = { padding: "14px 20px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" };
-const eyebrowStyle = { fontSize: 9, letterSpacing: "2.5px", textTransform: "uppercase", color: C.muted };
-const tagStyle = { fontSize: 9, letterSpacing: "1px", textTransform: "uppercase", padding: "3px 10px", borderRadius: 20 };
-const dividerStyle = { borderTop: `1px solid ${C.border}`, margin: "16px 0" };
-const statusBarStyle = { display: "flex", alignItems: "center", gap: 8, padding: "9px 13px", borderRadius: 8, marginBottom: 16 };
-const metricsRowStyle = { display: "flex", gap: 10, marginBottom: 16 };
-const graphContainerStyle = { background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 10px 6px", marginBottom: 4 };
-const placeholderStyle = { display: "flex", alignItems: "center", justifyContent: "center", minHeight: 200 };
-const aiBoxStyle = { padding: "14px 16px", background: "rgba(200,214,191,0.15)", border: "1px solid rgba(200,214,191,0.4)", borderRadius: 8, marginTop: 16 };
-const aiLabelStyle = { fontSize: 9, letterSpacing: "2px", textTransform: "uppercase", color: "#6a8a6a", marginBottom: 6, display: "flex", alignItems: "center" };
-const toggleBtnStyle = { fontSize: 9, letterSpacing: "1.5px", textTransform: "uppercase", color: C.teal, background: "transparent", border: `1px solid rgba(108,189,181,0.4)`, borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontFamily: "'DM Mono', monospace" };
-const descBoxStyle = { background: C.surface, border: `1px solid ${C.border}`, borderLeft: `3px solid ${C.sage}`, borderRadius: 8, padding: "18px 20px", marginBottom: 24 };
-const descHeaderStyle = { display: "flex", justifyContent: "space-between", alignItems: "center" };
-const formulaBoxStyle = { background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 16px", fontSize: 12, letterSpacing: "0.5px", color: C.dark, fontFamily: "'DM Mono', monospace", marginTop: 10 };
-const thStyle = { fontSize: 9, letterSpacing: "1.5px", textTransform: "uppercase", color: C.muted, textAlign: "left", padding: "10px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 500, whiteSpace: "nowrap" };
-const tdStyle = { padding: "9px 12px", borderBottom: `1px solid rgba(221,219,200,0.5)`, color: C.text, fontSize: 11 };

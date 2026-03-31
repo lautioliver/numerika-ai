@@ -1,0 +1,77 @@
+/* ─── Comparador de Métodos ─────────────────────────────────────────────────── */
+.comparison-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 48px 40px 80px;
+}
+
+.comparison-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.comp-table {
+  border-radius: 0 0 14px 14px;
+  overflow: hidden;
+}
+
+.comp-table th, .comp-table td {
+  padding: 12px 14px;
+}
+
+.comp-table tr.error-row td {
+  opacity: 0.6;
+}
+
+.comp-table tr.error-row:hover td {
+  opacity: 1;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 500;
+}
+
+.status-badge.success {
+  background: rgba(108, 189, 181, 0.15);
+  color: var(--teal);
+  border: 1px solid rgba(108, 189, 181, 0.3);
+}
+
+.status-badge.error {
+  background: rgba(255, 100, 100, 0.1);
+  color: #c41e3a;
+  border: 1px solid rgba(255, 100, 100, 0.3);
+}
+
+.status-badge.warning {
+  background: rgba(255, 180, 0, 0.1);
+  color: #b38000;
+  border: 1px solid rgba(255, 180, 0, 0.3);
+}
+
+.view-link {
+  margin-left: 8px;
+  color: var(--teal);
+  text-decoration: none;
+  font-size: 10px;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.comp-table tr:hover .view-link {
+  opacity: 1;
+}
+
+@media (max-width: 800px) {
+  .comparison-grid {
+    grid-template-columns: 1fr;
+  }
+}

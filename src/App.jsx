@@ -1,13 +1,15 @@
-import { useState, useEffect } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Navigation } from "./components/Navigation";
-import { Footer } from "./components/Footer";
 import { HomePage } from "./pages/HomePage";
 import { SolverPage } from "./pages/SolverPage";
+import { ComparisonPage } from "./pages/ComparisonPage";
 import { MethodsPage } from "./pages/MethodsPage";
 import { Amn } from "./pages/Amn";
-import { Documentacion } from "./pages/Documentacion";
+// import { Documentacion } from "./pages/Documentacion"; // Ruta deshabilitada
 import { RegisterPage } from "./pages/RegisterPage";
-import { LoginPage } from "./pages/LoginPage"; // Chequeá si es loginPage o LoginPage
+import { LoginPage } from "./pages/LoginPage";
+import { useAuth } from "./context/AuthContext";
+import { IkaWidget } from "./components/IkaWidget";
 
 // Import styles
 import "./styles/globals.css";
@@ -16,104 +18,66 @@ import "./styles/cards.css";
 import "./styles/buttons.css";
 import "./styles/home.css";
 import "./styles/solver.css";
+import "./styles/simulators.css";
+import "./styles/comparison.css";
 import "./styles/footer.css";
 import "./styles/auth.css";
+import "./styles/ika.css";
 
 export default function NumerikaApp() {
-  // 1. ESTADOS
-  const [page, setPage] = useState("home");
-  const [user, setUser] = useState(null); // <-- AGREGAMOS ESTADO DE USUARIO
-  const [activeMethod, setActiveMethod] = useState("biseccion");
-  const [calculated, setCalculated] = useState(false);
-  const [funcExpr, setFuncExpr] = useState("x^2 - x - 2");
+  const { loading } = useAuth();
 
-  // PERSISTENCIA: Revisar si hay usuario al cargar la app
-  useEffect(() => {
-    const savedUser = localStorage.getItem("user");
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-  }, []);
+  // Mostrar nada mientras se valida el token
+  // (evita flash de UI no-autenticada si el usuario ya tiene sesión)
+  if (loading) {
+    return (
+      <div className="app" style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh"
+      }}>
+        <div style={{
+          fontSize: "10px",
+          letterSpacing: "3px",
+          textTransform: "uppercase",
+          color: "var(--muted)"
+        }}>
+          Cargando...
+        </div>
+      </div>
+    );
+  }
 
-  // 2. FUNCIONES DE MANEJO
-  const handlePageChange = (newPage) => {
-    setPage(newPage);
-  };
-
-  const handleLoginSuccess = (userData) => {
-    setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
-    setPage("home");
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
-    setPage("home");
-  };
-
-  // 3. RENDERIZADO
   return (
     <div className="app">
-      {/* Pasamos el usuario a la Navigation para que pueda saludarlo */}
-      <Navigation 
-        currentPage={page} 
-        onPageChange={handlePageChange} 
-        user={user} 
-        onLogout={handleLogout}
-      />
+      <Navigation />
 
       <main>
-        {page === "home" && <HomePage onPageChange={handlePageChange} />}
+        <Routes>
+          <Route path="/" element={<HomePage />} />
 
-        {page === "solver" && (
-          <SolverPage
-            activeMethod={activeMethod}
-            setActiveMethod={setActiveMethod}
-            calculated={calculated}
-            onCalculate={() => setCalculated(true)}
-            funcExpr={funcExpr}
-            onFuncChange={(expr) => { setFuncExpr(expr); setCalculated(false); }}
-            
-          />
-        )}
+          <Route path="/solver" element={<SolverPage />} />
+          <Route path="/solver/:methodId" element={<SolverPage />} />
 
-        {page === "metodos" && (
-          <MethodsPage
-            onMethodSelect={setActiveMethod}
-            onPageChange={handlePageChange}
-            funcExpr={funcExpr}
-          />
-        )}
+          <Route path="/comparar" element={<ComparisonPage />} />
 
-        {page === "amn" && 
-          <Amn 
-            
-          />
-        }
-        {page === "docs" && 
-        <Documentacion 
-          onPageChange={setPage} 
-        />
-        }
+          <Route path="/metodos" element={<MethodsPage />} />
 
-        {/* --- CORRECCIÓN DE RUTAS --- */}
-        {page === "register" && (
-          <RegisterPage 
-          onPageChange={handlePageChange} 
-          id="Register"
-          />
-        )}
+          <Route path="/aplicaciones" element={<Amn />} />
+          <Route path="/aplicaciones/:appId" element={<Amn />} />
 
-        {page === "login" && (
-          <LoginPage 
-            onPageChange={handlePageChange} 
-            onLoginSuccess={handleLoginSuccess}
-            
-          />
-        )}
-      </main>  
-  
+          {/* <Route path="/docs" element={<Documentacion />} /> */}
+
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* Redirigir rutas desconocidas al home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+
+      <IkaWidget />
     </div>
   );
 }

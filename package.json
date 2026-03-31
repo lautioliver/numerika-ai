@@ -11,15 +11,24 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "katex": "^0.16.44",
+    "lucide-react": "^1.7.0",
+    "mathjs": "^15.1.1",
     "pg": "^8.20.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
+    "react-router-dom": "^7.13.2",
     "recharts": "^3.8.0",
-    "helmet": "^8.1.0"
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0"
   },
   "devDependencies": {
     "@eslint/css": "^1.0.0",

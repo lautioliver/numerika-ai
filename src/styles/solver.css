@@ -410,6 +410,37 @@ small {
   margin: 0;
 }
 
+.ai-label-icon {
+  color: var(--teal);
+  font-size: 12px;
+}
+
+/* ─── AI Skeleton loading ─── */
+.ai-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.skeleton-line {
+  height: 10px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    rgba(200, 214, 191, 0.2) 25%,
+    rgba(200, 214, 191, 0.45) 50%,
+    rgba(200, 214, 191, 0.2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* ─── Alerta raíces múltiples ────────────────────────────────────────────────── */
 .multi-root-alert {
   margin-top: 12px;

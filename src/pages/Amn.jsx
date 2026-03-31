@@ -1,29 +1,27 @@
-import React, { useState } from "react";
+import React from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Card } from "../components/Card";
 import { AMN_CARDS } from "../constants/data";
 import SimuladorMultas from "../utils/aplicationNumericalMethods";
-import AnalizadorEstructura from "../utils/StructuralAnalysis"
+import AnalizadorEstructura from "../utils/StructuralAnalysis";
 
 // 🚀 MAPEO DE APLICACIONES
 // La clave debe coincidir con el id en AMN_CARDS (data.js)
+// Almacenamos REFERENCIAS a componentes (no JSX) para evitar bugs de estado compartido
 const APLICATION_MAP = {
-  "semaforo":    <SimuladorMultas />,
-  "estructura":  <AnalizadorEstructura />,
-  // "termodinamica": <SimuladorCalor />,  <-- próxima aplicación
+  "semaforo":    SimuladorMultas,
+  "estructura":  AnalizadorEstructura,
+  // "termodinamica": SimuladorCalor,  <-- próxima aplicación
 };
 
 export const Amn = () => {
-  const [subPage, setSubPage] = useState("list");
-  const [selectedMethod, setSelectedMethod] = useState(null);
-
-  const handleSelect = (id) => {
-    setSelectedMethod(id);
-    setSubPage("detalle");
-  };
+  const { appId } = useParams();
+  const navigate = useNavigate();
 
   // --- VISTA DETALLE ---
-  if (subPage === "detalle") {
-    const card = AMN_CARDS.find(c => c.id === selectedMethod);
+  if (appId) {
+    const card = AMN_CARDS.find(c => c.id === appId);
+    const AppComponent = APLICATION_MAP[appId];
 
     return (
       <section className="fade-up" style={{ padding: "40px", maxWidth: "940px", margin: "0 auto" }}>
@@ -37,8 +35,8 @@ export const Amn = () => {
           </p>
         </div>
 
-        {APLICATION_MAP[selectedMethod] ? (
-          APLICATION_MAP[selectedMethod]
+        {AppComponent ? (
+          <AppComponent />
         ) : (
           <div style={{
             textAlign: "center", padding: "48px 20px",
@@ -46,7 +44,7 @@ export const Amn = () => {
             borderRadius: 14,
           }}>
             <p style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.8 }}>
-              El motor para <strong>{selectedMethod}</strong> está en desarrollo. 🛠️
+              El motor para <strong>{appId}</strong> está en desarrollo. 🛠️
             </p>
           </div>
         )}
@@ -54,7 +52,7 @@ export const Amn = () => {
         <div style={{ marginTop: 36, paddingTop: 24, borderTop: "1px solid var(--border)" }}>
           <button
             className="btn-cta outline"
-            onClick={() => setSubPage("list")}
+            onClick={() => navigate("/aplicaciones")}
           >
             ← Volver al listado
           </button>
@@ -76,7 +74,7 @@ export const Amn = () => {
             <button
               className="btn-cta outline"
               style={{ marginTop: "16px", padding: "8px 18px", fontSize: "9px" }}
-              onClick={() => handleSelect(card.id)}
+              onClick={() => navigate(`/aplicaciones/${card.id}`)}
             >
               {APLICATION_MAP[card.id] ? "Abrir simulador →" : "Próximamente"}
             </button>

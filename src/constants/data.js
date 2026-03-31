@@ -54,12 +54,12 @@ export const METHODS_DETAILS = [
   },
 ];
 
-export const ALPLICATION_METHODS = [
+export const APPLICATION_METHODS = [
   {
     id: "amn",
-    name: "AMN",
+    name: "Aplicaciones de Métodos Numéricos",
     type: "amn",
-    desc: "ANO"
+    desc: "Aplicaciones prácticas de métodos numéricos en ingeniería."
   }
 ];
 
@@ -196,9 +196,10 @@ export const HOME_CARDS = [
 export const NAV_ITEMS = [
   ["home", "Inicio"],
   ["solver", "Solver"],
+  ["comparar", "Comparar"],
   ["metodos", "Métodos"],
   ["amn", "Aplicaciones"],
-  ["docs", "Docs"],
+  // ["docs", "Docs"],
 ];
 
 export const DOCS_CARDS = [

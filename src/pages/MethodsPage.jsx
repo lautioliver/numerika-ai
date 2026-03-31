@@ -1,8 +1,11 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "../components/Card";
 import { METHODS_DETAILS } from "../constants/data";
 
-export const MethodsPage = ({ onMethodSelect, onPageChange }) => {
+export const MethodsPage = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="home fade-up">
       <div className="home-eyebrow">Métodos disponibles</div>
@@ -21,10 +24,7 @@ export const MethodsPage = ({ onMethodSelect, onPageChange }) => {
             <button
               className="btn-cta outline"
               style={{ marginTop: "16px", padding: "8px 18px", fontSize: "9px" }}
-              onClick={() => {
-                onMethodSelect(m.id);
-                onPageChange("solver");
-              }}
+              onClick={() => navigate(`/solver/${m.id}`)}
             >
               Usar método
             </button>
@@ -34,4 +34,3 @@ export const MethodsPage = ({ onMethodSelect, onPageChange }) => {
     </div>
   );
 };
-

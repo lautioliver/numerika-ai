@@ -1,8 +1,11 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "../components/Card";
 import { HOME_CARDS } from "../constants/data";
 
-export const HomePage = ({ onPageChange, onMethodSelect }) => {
+export const HomePage = () => {
+  const navigate = useNavigate();
+
   const methodsList = [
     ["Bisección", "cerrado"],
     ["Regla Falsa", "cerrado"],
@@ -20,7 +23,7 @@ export const HomePage = ({ onPageChange, onMethodSelect }) => {
       </h1>
 
       <div className="cards">
-        {HOME_CARDS.map((card, idx) => (
+        {HOME_CARDS.map((card) => (
           <Card
             key={card.id}
             type={card.type}
@@ -32,10 +35,10 @@ export const HomePage = ({ onPageChange, onMethodSelect }) => {
       </div>
 
       <div className="cta-row">
-        <button className="btn-cta" onClick={() => onPageChange("solver")}>
+        <button className="btn-cta" onClick={() => navigate("/solver")}>
           Abrir Solver
         </button>
-        <button className="btn-cta outline" onClick={() => onPageChange("metodos")}>
+        <button className="btn-cta outline" onClick={() => navigate("/metodos")}>
           Ver métodos
         </button>
       </div>

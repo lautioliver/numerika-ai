@@ -1,6 +1,11 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-export const LoginPage = ({ onPageChange }) => {
+export const LoginPage = () => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -10,29 +15,16 @@ export const LoginPage = ({ onPageChange }) => {
     if (error) setError("");
   };
 
-  const API_URL = import.meta.env.VITE_API_URL;
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
     try {
-      // ✅ CORREGIDO: Se usan backticks (``) y la ruta /api/auth/login
-      const response = await fetch(`${API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        onPageChange("home");
-      } else {
-        setError(data.error || "Credenciales incorrectas");
-      }
+      await login(formData.email, formData.password);
+      navigate("/");
     } catch (err) {
-      setError("No se pudo conectar con el servidor.");
+      setError(err.message || "No se pudo conectar con el servidor.");
     } finally {
       setLoading(false);
     }
@@ -83,7 +75,7 @@ export const LoginPage = ({ onPageChange }) => {
 
         <div className="form-footer">
           <span>¿No tenés cuenta?</span>
-          <a href="#register" onClick={(e) => { e.preventDefault(); onPageChange("register"); }}>Regístrate</a>
+          <a href="/register" onClick={(e) => { e.preventDefault(); navigate("/register"); }}>Regístrate</a>
         </div>
       </form>
     </div>

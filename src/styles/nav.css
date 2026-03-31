@@ -24,6 +24,7 @@
   transition: color 0.2s;
   white-space: nowrap;
   flex-shrink: 0;
+  text-decoration: none;
 }
 
 .nav-logo:hover {
@@ -35,6 +36,7 @@
   font-style: italic;
 }
 
+/* ─── Links de navegación ─── */
 .nav-links {
   display: flex;
   gap: 36px;
@@ -44,6 +46,10 @@
 }
 
 .nav-links li {
+  white-space: nowrap;
+}
+
+.nav-links li a {
   font-size: 10px;
   letter-spacing: 2.5px;
   text-transform: uppercase;
@@ -53,43 +59,72 @@
   padding: 4px 0;
   border-bottom: 2px solid transparent;
   white-space: nowrap;
+  text-decoration: none;
+  display: inline-block;
 }
 
-.nav-links li:hover {
+.nav-links li a:hover {
   color: var(--cream);
 }
 
-.nav-links li.active {
+.nav-links li a.active {
   color: var(--teal-lt);
   border-bottom-color: var(--teal-lt);
 }
 
-.nav-badge {
-  font-size: 9px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: #6a7a72;
-  border: 1px solid #2e3836;
-  padding: 4px 10px;
-  border-radius: 20px;
-  white-space: nowrap;
+/* ─── Auth section (Register / Login / User greeting) ─── */
+.nav-auth {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   flex-shrink: 0;
 }
 
-.nav-container {
-  z-index: 3000;
-  display: flex;
-  align-items: center; /* Alinea todo verticalmente al centro */
-  padding: 0%;  /* Ajusta el aire a los costados */
+.nav-user-greeting {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--teal-lt);
+  white-space: nowrap;
 }
 
-.nav-auth-group {
-  margin-left: auto;
-  display: flex;
-  gap: 5px;
+.btn-register,
+.btn-login {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'DM Mono', monospace;
+  white-space: nowrap;
+  text-decoration: none;
+  display: inline-block;
 }
 
-/* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
+.btn-register {
+  background: transparent;
+  border: 1px solid rgba(108, 189, 181, 0.4);
+  color: var(--teal-lt);
+}
+
+.btn-register:hover {
+  background: rgba(108, 189, 181, 0.1);
+  border-color: var(--teal-lt);
+}
+
+.btn-login {
+  background: var(--teal);
+  border: 1px solid var(--teal);
+  color: var(--dark);
+}
+
+.btn-login:hover {
+  background: var(--teal-lt);
+  border-color: var(--teal-lt);
+}
+
+/* ─── RESPONSIVE ─── */
 
 @media (max-width: 768px) {
   .nav {
@@ -106,15 +141,24 @@
     gap: 20px;
   }
 
-  .nav-links li {
+  .nav-links li a {
     font-size: 9px;
     letter-spacing: 2px;
     padding: 3px 0;
   }
 
-  .nav-badge {
+  .nav-auth {
+    gap: 8px;
+  }
+
+  .btn-register,
+  .btn-login {
     font-size: 8px;
-    padding: 3px 8px;
+    padding: 5px 10px;
+  }
+
+  .nav-user-greeting {
+    font-size: 9px;
   }
 }
 
@@ -130,76 +174,28 @@
     letter-spacing: 0.5px;
   }
 
-  /* Hide links on very small screens, show as collapsed */
-  .nav-links {
-    gap: 12px;
-    font-size: 8px;
-  }
-
-  .nav-links li {
-    font-size: 7px;
-    letter-spacing: 1.5px;
-    padding: 2px 0;
-    padding-left: 6px;
-    padding-right: 6px;
-    border-bottom-width: 1px;
-  }
-
-  .nav-links li.active {
-    border-bottom-width: 1px;
-  }
-
-  .nav-badge {
-    font-size: 7px;
-    padding: 2px 6px;
-    letter-spacing: 1px;
-  }
-}
-
-/* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
-
-@media (max-width: 768px) {
-  .nav {
-    padding: 0 28px;
-    height: 56px;
-  }
-
-  .nav-logo {
-    font-size: 16px;
-  }
-
-  .nav-links {
-    gap: 20px;
-  }
-
-  .nav-links li {
-    font-size: 9px;
-    letter-spacing: 2px;
-  }
-}
-
-@media (max-width: 480px) {
-  .nav {
-    padding: 0 16px;
-    height: 52px;
-  }
-
-  .nav-logo {
-    font-size: 14px;
-  }
-
   .nav-links {
     gap: 12px;
   }
 
-  .nav-links li {
-    font-size: 8px;
+  .nav-links li a {
+    font-size: 7px;
     letter-spacing: 1.5px;
     padding: 2px 0;
+    border-bottom-width: 1px;
   }
 
-  .nav-badge {
+  .nav-auth {
+    gap: 6px;
+  }
+
+  .btn-register,
+  .btn-login {
     font-size: 7px;
-    padding: 3px 8px;
+    padding: 4px 8px;
+  }
+
+  .nav-user-greeting {
+    display: none;
   }
 }

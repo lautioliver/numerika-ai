@@ -1,6 +1,11 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-export const RegisterPage = ({ onPageChange }) => {
+export const RegisterPage = () => {
+  const navigate = useNavigate();
+  const { register } = useAuth();
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -79,8 +84,6 @@ export const RegisterPage = ({ onPageChange }) => {
     return newErrors;
   };
 
-  const API_URL = import.meta.env.VITE_API_URL;
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
@@ -93,23 +96,10 @@ export const RegisterPage = ({ onPageChange }) => {
     setLoading(true);
 
     try {
-      // ✅ CORREGIDO: Se usan backticks (``) para inyectar la variable API_URL
-      const response = await fetch(`${API_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setSuccess(true);
-      } else {
-        alert(data.error || "Error al registrar");
-      }
+      await register(formData);
+      setSuccess(true);
     } catch (error) {
-      console.error("Error de conexión:", error);
-      alert("No se pudo conectar con el servidor backend.");
+      alert(error.message || "Error al registrar");
     } finally {
       setLoading(false);
     }
@@ -126,7 +116,7 @@ export const RegisterPage = ({ onPageChange }) => {
           </div>
           <h2 className="success-title">¡Bienvenido a NumérikaAI!</h2>
           <p className="success-message">Tu cuenta ha sido creada exitosamente.</p>
-          <button className="btn-cta" onClick={() => onPageChange("home")} style={{ margin: "0 auto" }}>
+          <button className="btn-cta" onClick={() => navigate("/")} style={{ margin: "0 auto" }}>
             Ir a Inicio
           </button>
         </div>
@@ -223,7 +213,7 @@ export const RegisterPage = ({ onPageChange }) => {
 
           <div className="form-footer">
             <span>¿Ya tenés cuenta?</span>
-            <a href="#login" onClick={(e) => { e.preventDefault(); onPageChange("login"); }}>Inicia sesión</a>
+            <a href="/login" onClick={(e) => { e.preventDefault(); navigate("/login"); }}>Inicia sesión</a>
           </div>
         </form>
       </div>

@@ -4,13 +4,6 @@ import {
   Tooltip, ReferenceLine, ResponsiveContainer,
 } from "recharts";
 
-// ─── Paleta NumérikaAI ────────────────────────────────────────────────────────
-const C = {
-  cream: "#E3DFBA", sage: "#C8D6BF", teal: "#6CBDB5",
-  dark: "#1A1F1E", bg: "#f5f3e8", surface: "#faf9f2",
-  border: "#dddbc8", muted: "#7a8a82", text: "#1A1F1E",
-};
-
 // ─── Componente Principal ─────────────────────────────────────────────────────
 export default function SimuladorMultas() {
   const [params, setParams] = useState({
@@ -99,39 +92,39 @@ export default function SimuladorMultas() {
     : result?.iterations.slice(-5);
 
   return (
-    <div style={{ fontFamily: "'DM Mono', monospace", color: C.text }}>
+    <div className="sim-container">
 
       {/* ── Descripción del Método ─────────────────────────────────────────── */}
-      <div style={descBoxStyle}>
-        <div style={descHeaderStyle}>
-          <span style={eyebrowStyle}>Modelo Matemático</span>
-          <span style={{ ...tagStyle, color: C.teal, background: "rgba(108,189,181,0.1)", border: "1px solid rgba(108,189,181,0.3)" }}>
+      <div className="sim-desc-box">
+        <div className="sim-desc-header">
+          <span className="sim-eyebrow">Modelo Matemático</span>
+          <span className="sim-tag sim-tag-teal">
             Newton-Raphson
           </span>
         </div>
-        <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.8, margin: "10px 0 6px" }}>
-          Dado un territorio con densidad <strong style={{ color: C.text }}>ρ</strong> hab/km² y tasa
-          vehicular <strong style={{ color: C.text }}>β</strong>, el modelo busca la densidad óptima de
-          infraestructura de control <strong style={{ color: C.text }}>σ*</strong> tal que el costo de
-          operación se equilibre con la multa objetivo <strong style={{ color: C.text }}>L</strong>:
+        <p style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.8, margin: "10px 0 6px" }}>
+          Dado un territorio con densidad <strong>ρ</strong> hab/km² y tasa
+          vehicular <strong>β</strong>, el modelo busca la densidad óptima de
+          infraestructura de control <strong>σ*</strong> tal que el costo de
+          operación se equilibre con la multa objetivo <strong>L</strong>:
         </p>
-        <div style={formulaBoxStyle}>
+        <div className="sim-formula-box">
           f(σ) = k + α · (ρ · β / σ) − L = 0
         </div>
-        <p style={{ fontSize: 11, color: C.muted, lineHeight: 1.7, marginTop: 8 }}>
-          El método de <strong style={{ color: C.text }}>Newton-Raphson</strong> itera usando la derivada
+        <p style={{ fontSize: 11, color: "var(--muted)", lineHeight: 1.7, marginTop: 8 }}>
+          El método de <strong>Newton-Raphson</strong> itera usando la derivada
           analítica f′(σ) = −α·ρ·β / σ² para converger cuadráticamente a la solución.
         </p>
       </div>
 
       {/* ── Grid Principal ────────────────────────────────────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 20, alignItems: "start" }}>
+      <div className="sim-grid">
 
         {/* ── Panel de Configuración ── */}
-        <div style={panelStyle}>
-          <div style={panelHeaderStyle}>
-            <span style={eyebrowStyle}>Variables Urbanas</span>
-            <span style={{ ...tagStyle, color: "#6a8a6a", background: "rgba(200,214,191,0.15)" }}>
+        <div className="sim-panel">
+          <div className="sim-panel-header">
+            <span className="sim-eyebrow">Variables Urbanas</span>
+            <span className="sim-tag sim-tag-sage">
               Modelo 1.0
             </span>
           </div>
@@ -152,7 +145,7 @@ export default function SimuladorMultas() {
               step={0.05}
             />
 
-            <div style={dividerStyle} />
+            <div className="sim-divider" />
             <SectionLabel text="Economía" />
             <Field
               label="Multa base k ($)"
@@ -167,7 +160,7 @@ export default function SimuladorMultas() {
               hint="Debe ser mayor que k"
             />
 
-            <div style={dividerStyle} />
+            <div className="sim-divider" />
             <SectionLabel text="Modelo" />
             <Field
               label="Sensibilidad al riesgo α"
@@ -178,7 +171,7 @@ export default function SimuladorMultas() {
 
             {/* Advertencia si L <= k */}
             {params.L <= params.k && (
-              <div style={warnStyle}>
+              <div className="sim-warn">
                 ⚠ La multa objetivo L debe ser mayor que la multa base k.
               </div>
             )}
@@ -187,32 +180,31 @@ export default function SimuladorMultas() {
         </div>
 
         {/* ── Panel de Resultados ── */}
-        <div style={panelStyle}>
-          <div style={panelHeaderStyle}>
-            <span style={eyebrowStyle}>Resultado</span>
+        <div className="sim-panel">
+          <div className="sim-panel-header">
+            <span className="sim-eyebrow">Resultado</span>
             {result && (
-              <span style={{ fontSize: 9, color: C.muted, letterSpacing: "1px" }}>
+              <span style={{ fontSize: 9, color: "var(--muted)", letterSpacing: "1px" }}>
                 {result.totalIter} iteración{result.totalIter !== 1 ? "es" : ""}
               </span>
             )}
           </div>
           <div style={{ padding: 20 }}>
             {!result ? (
-              <div style={placeholderStyle}>
-                <p style={{ fontSize: 10, letterSpacing: "2px", textTransform: "uppercase", color: C.muted }}>
+              <div className="sim-placeholder">
+                <p className="sim-placeholder-text">
                   Ajustá los parámetros para calcular
                 </p>
               </div>
             ) : (
               <>
                 {/* Status */}
-                <div style={{
-                  ...statusBarStyle,
+                <div className="sim-status" style={{
                   background: result.converged ? "rgba(108,189,181,0.1)" : "rgba(220,180,100,0.1)",
                   border: `1px solid ${result.converged ? "rgba(108,189,181,0.3)" : "rgba(220,180,100,0.3)"}`,
                 }}>
-                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: result.converged ? C.teal : "#d4a84b", flexShrink: 0 }} />
-                  <span style={{ color: result.converged ? C.teal : "#d4a84b", fontSize: 10, letterSpacing: "1px", textTransform: "uppercase" }}>
+                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: result.converged ? "var(--teal)" : "#d4a84b", flexShrink: 0 }} />
+                  <span style={{ color: result.converged ? "var(--teal)" : "#d4a84b", fontSize: 10, letterSpacing: "1px", textTransform: "uppercase" }}>
                     {result.converged
                       ? `Equilibrio hallado · σ* ≈ ${result.root.toFixed(4)}`
                       : `Sin convergencia tras ${result.totalIter} iteraciones`}
@@ -220,29 +212,29 @@ export default function SimuladorMultas() {
                 </div>
 
                 {/* Gráfico */}
-                <div style={graphContainerStyle}>
-                  <div style={{ fontSize: 9, letterSpacing: "1.5px", textTransform: "uppercase", color: C.muted, marginBottom: 8 }}>
+                <div className="sim-graph">
+                  <div className="sim-graph-title">
                     f(σ) = k + α·(ρ·β/σ) − L
                   </div>
                   <ResponsiveContainer width="100%" height={175}>
                     <LineChart data={graphPoints} margin={{ top: 4, right: 16, left: -20, bottom: 0 }}>
-                      <CartesianGrid stroke={C.border} strokeDasharray="4 4" />
-                      <XAxis dataKey="x" tick={{ fontSize: 9, fill: C.muted, fontFamily: "'DM Mono', monospace" }} />
-                      <YAxis tick={{ fontSize: 9, fill: C.muted, fontFamily: "'DM Mono', monospace" }} />
+                      <CartesianGrid stroke="var(--border)" strokeDasharray="4 4" />
+                      <XAxis dataKey="x" tick={{ fontSize: 9, fill: "var(--muted)", fontFamily: "'DM Mono', monospace" }} />
+                      <YAxis tick={{ fontSize: 9, fill: "var(--muted)", fontFamily: "'DM Mono', monospace" }} />
                       <Tooltip
-                        contentStyle={{ fontSize: 10, borderRadius: 8, fontFamily: "'DM Mono', monospace", border: `1px solid ${C.border}`, background: C.surface }}
+                        contentStyle={{ fontSize: 10, borderRadius: 8, fontFamily: "'DM Mono', monospace", border: `1px solid var(--border)`, background: "var(--surface)" }}
                         labelFormatter={(v) => `σ = ${v}`}
                         formatter={(v) => [`f(σ) = ${v}`, ""]}
                       />
-                      <ReferenceLine y={0} stroke={C.muted} strokeWidth={1} />
+                      <ReferenceLine y={0} stroke="var(--muted)" strokeWidth={1} />
                       <ReferenceLine
                         x={parseFloat(result.root.toFixed(3))}
-                        stroke={C.teal}
+                        stroke="#6CBDB5"
                         strokeDasharray="5 3"
                         strokeWidth={1.5}
-                        label={{ value: `σ*=${result.root.toFixed(2)}`, position: "top", fontSize: 9, fill: C.teal }}
+                        label={{ value: `σ*=${result.root.toFixed(2)}`, position: "top", fontSize: 9, fill: "#6CBDB5" }}
                       />
-                      <Line type="monotone" dataKey="y" stroke={C.teal} strokeWidth={2} dot={false} connectNulls={false} />
+                      <Line type="monotone" dataKey="y" stroke="#6CBDB5" strokeWidth={2} dot={false} connectNulls={false} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -250,32 +242,32 @@ export default function SimuladorMultas() {
                 {/* Tabla de Iteraciones con scroll */}
                 <div style={{ marginTop: 20 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                    <span style={eyebrowStyle}>Tabla de Iteraciones</span>
+                    <span className="sim-eyebrow">Tabla de Iteraciones</span>
                     <button
-                      style={toggleBtnStyle}
+                      className="sim-btn-toggle"
                       onClick={() => setShowAllIter(v => !v)}
                     >
                       {showAllIter ? "Mostrar últimas 5" : `Ver todas (${result.iterations.length})`}
                     </button>
                   </div>
 
-                  <div style={{ maxHeight: 220, overflowY: "auto", border: `1px solid ${C.border}`, borderRadius: 8 }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11, fontFamily: "'DM Mono', monospace" }}>
-                      <thead style={{ position: "sticky", top: 0, background: C.surface, zIndex: 1 }}>
+                  <div className="sim-table-wrap">
+                    <table className="sim-table">
+                      <thead>
                         <tr>
                           {["n", "σₙ", "f(σₙ)", "f′(σₙ)", "Error %"].map(h => (
-                            <th key={h} style={thStyle}>{h}</th>
+                            <th key={h}>{h}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {displayedIter.map((row, i) => (
                           <tr key={i} style={{ background: row.converged ? "rgba(108,189,181,0.07)" : "transparent" }}>
-                            <td style={tdStyle}>{row.n}</td>
-                            <td style={tdStyle}>{row.sigma}</td>
-                            <td style={tdStyle}>{row.fs}</td>
-                            <td style={tdStyle}>{row.fpx}</td>
-                            <td style={{ ...tdStyle, color: row.converged ? C.teal : C.text, fontWeight: row.converged ? 500 : 400 }}>
+                            <td>{row.n}</td>
+                            <td>{row.sigma}</td>
+                            <td>{row.fs}</td>
+                            <td>{row.fpx}</td>
+                            <td style={{ color: row.converged ? "var(--teal)" : "var(--text)", fontWeight: row.converged ? 500 : 400 }}>
                               {row.error === "0.0000" ? "—" : `${row.error}%`}
                             </td>
                           </tr>
@@ -286,19 +278,19 @@ export default function SimuladorMultas() {
                 </div>
 
                 {/* Insight */}
-                <div style={aiBoxStyle}>
-                  <div style={aiLabelStyle}>
-                    <span style={{ width: 4, height: 4, borderRadius: "50%", background: C.sage, display: "inline-block", marginRight: 6 }} />
+                <div className="sim-ai-box">
+                  <div className="sim-ai-label">
+                    <span style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--sage)", display: "inline-block", marginRight: 6 }} />
                     Interpretación del Resultado
                   </div>
-                  <p style={{ margin: 0, fontSize: 11, color: C.muted, lineHeight: 1.8 }}>
-                    Para una zona con <strong style={{ color: C.text }}>{params.rho} hab/km²</strong> y tasa
-                    vehicular <strong style={{ color: C.text }}>β = {params.beta}</strong>, el modelo
-                    converge en <strong style={{ color: C.text }}>{result.totalIter} iteraciones</strong> a
+                  <p style={{ margin: 0, fontSize: 11, color: "var(--muted)", lineHeight: 1.8 }}>
+                    Para una zona con <strong>{params.rho} hab/km²</strong> y tasa
+                    vehicular <strong>β = {params.beta}</strong>, el modelo
+                    converge en <strong>{result.totalIter} iteraciones</strong> a
                     una densidad óptima de infraestructura de{" "}
-                    <strong style={{ color: C.teal }}>σ* = {result.root.toFixed(4)}</strong> dispositivos/km²,
+                    <strong style={{ color: "var(--teal)" }}>σ* = {result.root.toFixed(4)}</strong> dispositivos/km²,
                     punto en el que el costo operativo se equilibra con la multa objetivo de{" "}
-                    <strong style={{ color: C.text }}>${params.L}</strong>.
+                    <strong>${params.L}</strong>.
                   </p>
                 </div>
               </>
@@ -314,7 +306,7 @@ export default function SimuladorMultas() {
 // ─── Helpers de UI ────────────────────────────────────────────────────────────
 function SectionLabel({ text }) {
   return (
-    <div style={{ fontSize: 8, letterSpacing: "2.5px", textTransform: "uppercase", color: C.teal, marginBottom: 10, marginTop: 4 }}>
+    <div className="sim-section-label">
       {text}
     </div>
   );
@@ -322,44 +314,18 @@ function SectionLabel({ text }) {
 
 function Field({ label, value, onChange, hint, step = 1 }) {
   return (
-    <div style={{ marginBottom: 14 }}>
-      <label style={{ display: "block", fontSize: 9, textTransform: "uppercase", letterSpacing: "1.5px", color: C.muted, marginBottom: 5 }}>
+    <div className="sim-field">
+      <label className="sim-field-label">
         {label}
       </label>
       <input
         type="number"
         step={step}
-        style={{
-          width: "100%", background: C.bg, border: `1px solid ${C.border}`,
-          borderRadius: 8, padding: "9px 12px",
-          fontFamily: "'DM Mono', monospace", fontSize: 13, color: C.text,
-          outline: "none", boxSizing: "border-box", transition: "border-color 0.2s",
-        }}
+        className="sim-field-input"
         value={value}
         onChange={e => onChange(Number(e.target.value))}
-        onFocus={e => e.target.style.borderColor = C.teal}
-        onBlur={e => e.target.style.borderColor = C.border}
       />
-      {hint && <div style={{ fontSize: 9, color: C.muted, marginTop: 3, letterSpacing: "0.3px" }}>{hint}</div>}
+      {hint && <div className="sim-field-hint">{hint}</div>}
     </div>
   );
 }
-
-// ─── Estilos ──────────────────────────────────────────────────────────────────
-const panelStyle = { background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" };
-const panelHeaderStyle = { padding: "14px 20px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" };
-const eyebrowStyle = { fontSize: 9, letterSpacing: "2.5px", textTransform: "uppercase", color: C.muted };
-const tagStyle = { fontSize: 9, letterSpacing: "1px", textTransform: "uppercase", padding: "3px 10px", borderRadius: 20 };
-const dividerStyle = { borderTop: `1px solid ${C.border}`, margin: "16px 0" };
-const statusBarStyle = { display: "flex", alignItems: "center", gap: 8, padding: "9px 13px", borderRadius: 8, marginBottom: 16 };
-const graphContainerStyle = { background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 10px 6px", marginBottom: 4 };
-const placeholderStyle = { display: "flex", alignItems: "center", justifyContent: "center", minHeight: 200, color: C.muted };
-const aiBoxStyle = { padding: "14px 16px", background: "rgba(200,214,191,0.15)", border: "1px solid rgba(200,214,191,0.4)", borderRadius: 8, marginTop: 16 };
-const aiLabelStyle = { fontSize: 9, letterSpacing: "2px", textTransform: "uppercase", color: "#6a8a6a", marginBottom: 6, display: "flex", alignItems: "center" };
-const warnStyle = { padding: "8px 12px", background: "rgba(220,100,80,0.08)", border: "1px solid rgba(220,100,80,0.2)", borderRadius: 8, fontSize: 10, color: "#c06050", lineHeight: 1.6, marginTop: 8 };
-const toggleBtnStyle = { fontSize: 9, letterSpacing: "1.5px", textTransform: "uppercase", color: C.teal, background: "transparent", border: `1px solid rgba(108,189,181,0.4)`, borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontFamily: "'DM Mono', monospace" };
-const descBoxStyle = { background: C.surface, border: `1px solid ${C.border}`, borderLeft: `3px solid ${C.teal}`, borderRadius: 8, padding: "18px 20px", marginBottom: 24 };
-const descHeaderStyle = { display: "flex", justifyContent: "space-between", alignItems: "center" };
-const formulaBoxStyle = { background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 16px", fontSize: 13, letterSpacing: "0.5px", color: C.dark, fontFamily: "'DM Mono', monospace", marginTop: 10 };
-const thStyle = { fontSize: 9, letterSpacing: "1.5px", textTransform: "uppercase", color: C.muted, textAlign: "left", padding: "10px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 500, whiteSpace: "nowrap" };
-const tdStyle = { padding: "9px 12px", borderBottom: `1px solid rgba(221,219,200,0.5)`, color: C.text, fontSize: 11 };
