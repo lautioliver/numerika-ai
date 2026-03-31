@@ -62,7 +62,7 @@ const GuideAcordion = ({ methodId, funcExpr }) => {
       >
         <span className="stepbystep-toggle-left">
           <span className="stepbystep-arrow">{open ? "▾" : "▸"}</span>
-          Procedimiento de Resolución
+          Procedimiento y ejemplo de cálculo
         </span>
         <span className="stepbystep-badge">
           {open ? "Cerrar" : "Ver detalle"}
@@ -87,9 +87,6 @@ const GuideAcordion = ({ methodId, funcExpr }) => {
               ))}
             </ol>
           </div>
-
-          {/* Ejemplo numérico */}
-
         </div>
       )}
     </div>
@@ -103,7 +100,7 @@ export const SolverPage = () => {
   const activeMethod = methodId || "biseccion";
   const selected = METHODS.find((m) => m.id === activeMethod);
 
-  const [funcExpr, setFuncExpr] = useState(" ");
+  const [funcExpr, setFuncExpr] = useState("x^2 - x - 2");
   const [aValue, setAValue] = useState("1");
   const [bValue, setBValue] = useState("3");
   const [x0Value, setX0Value] = useState("1.5");

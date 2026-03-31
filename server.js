@@ -173,7 +173,7 @@ app.post('/api/ai/explain', async (req, res) => {
     } catch (err) {
         console.error("Error en /api/ai/explain:", err.message);
         
-        if (err.message.includes("GEMINI_API_KEY")) {
+        if (err.message.includes("OPENAI_API_KEY")) {
             return res.status(503).json({ 
                 success: false, 
                 error: "El servicio de IA no está configurado aún." 
