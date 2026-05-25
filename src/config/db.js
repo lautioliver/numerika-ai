@@ -29,6 +29,38 @@ function normalizePostgresUrl(rawUrl) {
   return { url, isSupabase, isPooler };
 }
 
+function buildPgPoolConfig(connectionString) {
+  const needsSsl =
+    process.env.VERCEL ||
+    /supabase\.co|neon\.tech|railway\.app|sslmode=require/i.test(connectionString);
+
+  const base = {
+    connectionTimeoutMillis: 20000,
+    ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
+    max: process.env.VERCEL ? 1 : 10,
+    idleTimeoutMillis: 10000,
+  };
+
+  try {
+    const parsed = new URL(connectionString);
+    if (parsed.username && parsed.password && parsed.hostname) {
+      return {
+        ...base,
+        host: parsed.hostname,
+        port: Number(parsed.port || 5432),
+        user: decodeURIComponent(parsed.username),
+        password: decodeURIComponent(parsed.password),
+        database: parsed.pathname.replace(/^\//, '') || 'postgres',
+        ...(parsed.searchParams.get('sslmode') === 'require' ? { ssl: { rejectUnauthorized: false } } : {}),
+      };
+    }
+  } catch {
+    // fallback to connection string
+  }
+
+  return { ...base, connectionString };
+}
+
 export function getDbConnectionInfo() {
   const raw = process.env.DATABASE_URL;
   if (!raw) return { configured: false };
@@ -62,17 +94,8 @@ async function initialize() {
         const pkg = await import('pg');
         const { Pool } = pkg.default;
         const { url: connectionString, isSupabase } = normalizePostgresUrl(process.env.DATABASE_URL);
-        const needsSsl =
-          process.env.VERCEL ||
-          /supabase\.co|neon\.tech|railway\.app|sslmode=require/i.test(connectionString);
 
-        const pool = new Pool({
-          connectionString,
-          connectionTimeoutMillis: 20000,
-          ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
-          max: process.env.VERCEL ? 1 : 10,
-          idleTimeoutMillis: 10000,
-        });
+        const pool = new Pool(buildPgPoolConfig(connectionString));
 
         await pool.query({ text: 'SELECT 1 AS ok', prepare: false });
         console.log('✅ Conectado a PostgreSQL');
