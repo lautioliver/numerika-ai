@@ -19,9 +19,16 @@ async function initialize() {
       try {
         const pkg = await import('pg');
         const { Pool } = pkg.default;
+        const connectionString = process.env.DATABASE_URL;
+        const needsSsl =
+          process.env.VERCEL ||
+          /supabase\.co|neon\.tech|railway\.app|sslmode=require/i.test(connectionString);
+
         const pool = new Pool({
-          connectionString: process.env.DATABASE_URL,
-          connectionTimeoutMillis: 5000,
+          connectionString,
+          connectionTimeoutMillis: 10000,
+          ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
+          max: process.env.VERCEL ? 1 : 10,
         });
 
         await pool.query('SELECT 1');
@@ -32,12 +39,19 @@ async function initialize() {
         initialized = true;
         return;
       } catch (err) {
-        console.warn('⚠️  PostgreSQL no disponible:', err.message);
+        console.error('⚠️  PostgreSQL no disponible:', err.message);
+        if (process.env.VERCEL) {
+          throw new Error(`PostgreSQL requerido en Vercel: ${err.message}`);
+        }
         console.log('↪ Usando SQLite local como fallback...');
       }
     }
 
-    // Fallback: SQLite
+    if (process.env.VERCEL) {
+      throw new Error('DATABASE_URL no configurada en Vercel.');
+    }
+
+    // Fallback: SQLite (solo desarrollo local)
     try {
       const { default: Database } = await import('better-sqlite3');
       const path = await import('path');
