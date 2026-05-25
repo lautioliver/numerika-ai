@@ -20,6 +20,7 @@ async function initialize() {
         const pkg = await import('pg');
         const { Pool } = pkg.default;
         const connectionString = process.env.DATABASE_URL;
+        const isSupabase = /supabase\.co/i.test(connectionString);
         const needsSsl =
           process.env.VERCEL ||
           /supabase\.co|neon\.tech|railway\.app|sslmode=require/i.test(connectionString);
@@ -35,7 +36,12 @@ async function initialize() {
         console.log('✅ Conectado a PostgreSQL');
         dbType = 'postgres';
 
-        queryFn = (text, params) => pool.query(text, params);
+        // Supavisor (transaction pooler) no soporta prepared statements en node-pg
+        const useSimpleQuery = Boolean(process.env.VERCEL || isSupabase);
+        queryFn = (text, params) =>
+          useSimpleQuery
+            ? pool.query({ text, values: params, prepare: false })
+            : pool.query(text, params);
         initialized = true;
         return;
       } catch (err) {
