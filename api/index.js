@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import helmet from 'helmet';
-import { query, dbType } from '../src/config/db.js';
+import { query, dbType, getDbConnectionInfo } from '../src/config/db.js';
 import { generateToken, authMiddleware } from '../src/middleware/auth.js';
 import { generateExplanation, checkRateLimit, chatWithIka, getRateLimitStatus, GEMINI_MODEL } from '../src/services/ai.js';
 
@@ -56,20 +56,20 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/health', async (req, res) => {
-    const hasDbUrl = Boolean(process.env.DATABASE_URL);
+    const connection = getDbConnectionInfo();
     try {
         await query('SELECT 1 AS ok');
         res.json({
             success: true,
             dbType,
-            databaseUrlConfigured: hasDbUrl,
+            connection,
             geminiConfigured: Boolean(process.env.GEMINI_API_KEY),
         });
     } catch (err) {
         res.status(503).json({
             success: false,
             dbType,
-            databaseUrlConfigured: hasDbUrl,
+            connection,
             error: err.message,
         });
     }

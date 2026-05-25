@@ -3,11 +3,53 @@
 // Si falla, usa SQLite local como fallback para desarrollo.
 
 import 'dotenv/config';
+import dns from 'node:dns';
+
+if (process.env.VERCEL) {
+  dns.setDefaultResultOrder('ipv4first');
+}
 
 let queryFn;
 let dbType = 'unknown';
 let initialized = false;
 let initPromise = null;
+
+function normalizePostgresUrl(rawUrl) {
+  let url = rawUrl.trim();
+  const isSupabase = /supabase\.co/i.test(url);
+  const isPooler = /pooler\.supabase\.com/i.test(url);
+
+  if (isSupabase && !/sslmode=/i.test(url)) {
+    url += `${url.includes('?') ? '&' : '?'}sslmode=require`;
+  }
+  if (isPooler && /:6543/.test(url) && !/pgbouncer=/i.test(url)) {
+    url += `${url.includes('?') ? '&' : '?'}pgbouncer=true`;
+  }
+
+  return { url, isSupabase, isPooler };
+}
+
+export function getDbConnectionInfo() {
+  const raw = process.env.DATABASE_URL;
+  if (!raw) return { configured: false };
+
+  try {
+    const parsed = new URL(raw);
+    const isPooler = /pooler\.supabase\.com/i.test(parsed.hostname);
+    return {
+      configured: true,
+      host: parsed.hostname,
+      port: parsed.port || '5432',
+      user: parsed.username,
+      isPooler,
+      poolerUserOk: !isPooler || parsed.username.includes('.'),
+      sslmode: parsed.searchParams.get('sslmode'),
+      pgbouncer: parsed.searchParams.get('pgbouncer'),
+    };
+  } catch {
+    return { configured: true, parseError: true };
+  }
+}
 
 async function initialize() {
   if (initialized) return;
@@ -19,20 +61,20 @@ async function initialize() {
       try {
         const pkg = await import('pg');
         const { Pool } = pkg.default;
-        const connectionString = process.env.DATABASE_URL;
-        const isSupabase = /supabase\.co/i.test(connectionString);
+        const { url: connectionString, isSupabase } = normalizePostgresUrl(process.env.DATABASE_URL);
         const needsSsl =
           process.env.VERCEL ||
           /supabase\.co|neon\.tech|railway\.app|sslmode=require/i.test(connectionString);
 
         const pool = new Pool({
           connectionString,
-          connectionTimeoutMillis: 10000,
+          connectionTimeoutMillis: 20000,
           ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
           max: process.env.VERCEL ? 1 : 10,
+          idleTimeoutMillis: 10000,
         });
 
-        await pool.query('SELECT 1');
+        await pool.query({ text: 'SELECT 1 AS ok', prepare: false });
         console.log('✅ Conectado a PostgreSQL');
         dbType = 'postgres';
 
