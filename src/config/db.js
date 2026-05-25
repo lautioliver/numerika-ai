@@ -14,6 +14,25 @@ let dbType = 'unknown';
 let initialized = false;
 let initPromise = null;
 
+function resolveDatabaseUrl() {
+  const candidates = process.env.VERCEL
+    ? [
+        ['POSTGRES_URL', process.env.POSTGRES_URL],
+        ['DATABASE_URL', process.env.DATABASE_URL],
+        ['POSTGRES_PRISMA_URL', process.env.POSTGRES_PRISMA_URL],
+      ]
+    : [
+        ['DATABASE_URL', process.env.DATABASE_URL],
+        ['POSTGRES_URL', process.env.POSTGRES_URL],
+        ['POSTGRES_PRISMA_URL', process.env.POSTGRES_PRISMA_URL],
+      ];
+
+  for (const [source, url] of candidates) {
+    if (url) return { url, source };
+  }
+  return { url: null, source: null };
+}
+
 function normalizePostgresUrl(rawUrl) {
   let url = rawUrl.trim();
   const isSupabase = /supabase\.co/i.test(url);
@@ -62,7 +81,7 @@ function buildPgPoolConfig(connectionString) {
 }
 
 export function getDbConnectionInfo() {
-  const raw = process.env.DATABASE_URL;
+  const { url: raw, source } = resolveDatabaseUrl();
   if (!raw) return { configured: false };
 
   try {
@@ -70,6 +89,7 @@ export function getDbConnectionInfo() {
     const isPooler = /pooler\.supabase\.com/i.test(parsed.hostname);
     return {
       configured: true,
+      source,
       host: parsed.hostname,
       port: parsed.port || '5432',
       user: parsed.username,
@@ -79,7 +99,7 @@ export function getDbConnectionInfo() {
       pgbouncer: parsed.searchParams.get('pgbouncer'),
     };
   } catch {
-    return { configured: true, parseError: true };
+    return { configured: true, source, parseError: true };
   }
 }
 
@@ -89,11 +109,12 @@ async function initialize() {
 
   initPromise = (async () => {
     // Try PostgreSQL first
-    if (process.env.DATABASE_URL) {
+    const { url: dbUrl } = resolveDatabaseUrl();
+    if (dbUrl) {
       try {
         const pkg = await import('pg');
         const { Pool } = pkg.default;
-        const { url: connectionString, isSupabase } = normalizePostgresUrl(process.env.DATABASE_URL);
+        const { url: connectionString, isSupabase } = normalizePostgresUrl(dbUrl);
 
         const pool = new Pool(buildPgPoolConfig(connectionString));
 
@@ -119,7 +140,7 @@ async function initialize() {
     }
 
     if (process.env.VERCEL) {
-      throw new Error('DATABASE_URL no configurada en Vercel.');
+      throw new Error('DATABASE_URL / POSTGRES_URL no configurada en Vercel.');
     }
 
     // Fallback: SQLite (solo desarrollo local)
