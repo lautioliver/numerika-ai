@@ -557,3 +557,445 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ─── EDO mode ───────────────────────────────────────────────────────────────── */
+.edo-section {
+  margin-top: 4px;
+}
+
+.edo-subtabs {
+  margin-bottom: 20px;
+}
+
+.edo-subtab-content {
+  min-width: 0;
+}
+
+.calc-btn-secondary {
+  width: 100%;
+  margin-top: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.calc-btn-secondary:hover {
+  border-color: var(--teal-lt);
+  color: var(--teal);
+}
+
+.edo-section .field textarea {
+  width: 100%;
+  min-height: 110px;
+  resize: vertical;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 13px;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.edo-section .field textarea:focus {
+  border-color: var(--teal);
+}
+
+.edo-ic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.edo-ic-row {
+  display: grid;
+  grid-template-columns: minmax(72px, auto) 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.edo-ic-row--compact {
+  grid-template-columns: minmax(56px, auto) 1fr;
+}
+
+.edo-ic-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.edo-ic-at {
+  width: 36px !important;
+  padding: 6px 8px !important;
+  text-align: center;
+}
+
+.edo-ic-order {
+  width: auto;
+  min-width: 52px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.edo-ic-remove {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.edo-ic-remove:hover {
+  border-color: rgba(196, 30, 58, 0.4);
+  color: #c41e3a;
+  background: rgba(255, 100, 100, 0.06);
+}
+
+.edo-ic-add {
+  margin-top: 0;
+  margin-bottom: 4px;
+}
+
+.edo-ic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.edo-syntax-panel {
+  margin-top: 24px;
+  grid-column: 1 / -1;
+}
+
+.edo-section .friendly-error-box {
+  margin-top: 12px;
+}
+
+.edo-eq-plain {
+  text-align: left;
+  font-size: 12px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.edo-result-highlight {
+  background: rgba(108, 189, 181, 0.04);
+}
+
+.edo-solution-primary {
+  color: var(--teal);
+  font-size: 12px;
+}
+
+.edo-section .math-result-card {
+  border: none;
+  border-radius: 0;
+}
+
+.edo-section .math-result-card .stepbystep {
+  margin: 0 16px 16px;
+}
+
+.edo-step-list {
+  list-style: decimal;
+  padding-left: 1.25rem;
+}
+
+.edo-step-item {
+  margin-bottom: 14px;
+}
+
+.edo-step-label {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 8px;
+  font-family: 'DM Mono', monospace;
+}
+
+.edo-step-math {
+  padding: 10px 12px;
+  background: rgba(108, 189, 181, 0.04);
+  border: 1px dashed rgba(108, 189, 181, 0.2);
+  border-radius: 8px;
+  overflow-x: auto;
+  margin-bottom: 6px;
+}
+
+.edo-step-math .katex-display {
+  margin: 0;
+}
+
+.edo-step-text {
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text);
+  margin: 0;
+  font-family: 'DM Mono', monospace;
+}
+
+.edo-step-text--note {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.edo-solution-primary .katex {
+  color: var(--teal);
+}
+
+.edo-section .math-result-output-expr {
+  text-align: center;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: auto;
+}
+
+.edo-section .math-result-output-expr .katex {
+  font-size: 1.2em;
+}
+
+/* ─── EDO numérico (Euler / RK4) ───────────────────────────────────────────── */
+.edo-numerico .edo-method-tabs {
+  margin-bottom: 16px;
+}
+
+.edo-num-eq-hint {
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 0 0 16px;
+  font-family: 'DM Mono', monospace;
+}
+
+.edo-num-eq-hint strong {
+  color: var(--text);
+}
+
+.edo-num-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 16px;
+}
+
+.edo-num-table-wrap {
+  margin-top: 16px;
+  max-height: 320px;
+  overflow: auto;
+}
+
+.edo-numerico .graph-container {
+  margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+  .edo-ic-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .edo-ic-row--compact {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INTEGRACIÓN NUMÉRICA (Trapecio · Simpson 1/3 · Simpson 3/8)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.intnum-section {
+  margin-top: 8px;
+}
+
+.intnum-method-tabs {
+  margin-bottom: 18px;
+}
+
+.intnum-submit {
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px 18px;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid var(--teal);
+  background: var(--teal);
+  color: #0c1411;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.intnum-submit:hover:not(:disabled) {
+  background: #5ab2a9;
+  box-shadow: 0 6px 18px rgba(108, 189, 181, 0.28);
+  transform: translateY(-1px);
+}
+
+.intnum-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.intnum-examples {
+  margin-top: 16px;
+}
+
+.intnum-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid;
+  margin-bottom: 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.6px;
+}
+
+.intnum-status .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.intnum-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.intnum-summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-soft, rgba(255, 255, 255, 0.55));
+}
+
+.intnum-summary-card--highlight {
+  border-color: rgba(108, 189, 181, 0.55);
+  background: rgba(108, 189, 181, 0.12);
+}
+
+.intnum-summary-label {
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+}
+
+.intnum-summary-val {
+  font-size: 14px;
+  color: var(--text);
+  word-break: break-all;
+}
+
+.intnum-mono {
+  font-family: 'DM Mono', monospace;
+}
+
+.intnum-formula {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px dashed var(--border);
+  background: rgba(108, 189, 181, 0.05);
+  margin-bottom: 16px;
+}
+
+.intnum-formula-label {
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+}
+
+.intnum-formula code {
+  font-family: 'DM Mono', monospace;
+  font-size: 11.5px;
+  color: var(--text);
+  background: transparent;
+  padding: 0;
+}
+
+.intnum-graph {
+  margin-top: 4px;
+  margin-bottom: 16px;
+}
+
+.intnum-table-wrap {
+  margin-top: 12px;
+  max-height: 320px;
+  overflow: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.intnum-table {
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+}
+
+.intnum-table th,
+.intnum-table td {
+  white-space: nowrap;
+  padding: 6px 8px;
+}
+
+@media (max-width: 768px) {
+  .intnum-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .intnum-formula code {
+    font-size: 10.5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .intnum-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}

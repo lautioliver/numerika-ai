@@ -1008,3 +1008,243 @@ small {
     display: none;
   }
 }
+
+/* ─── Sistemas lineales (Solver) ─────────────────────────────────────────────── */
+.method-tabs-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.method-tabs-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.linsys-page {
+  margin-top: 4px;
+}
+
+.linsys-size-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.linsys-size-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.linsys-size-btn.active {
+  border-color: var(--teal);
+  color: var(--teal);
+  background: rgba(108, 189, 181, 0.1);
+}
+
+.linsys-matrix-block {
+  margin: 12px 0 16px;
+  padding: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+.linsys-matrix-col-labels,
+.linsys-matrix-row {
+  display: grid;
+  /* grid-template-columns set via inline style to match system size (2×2 / 3×3) */
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.linsys-matrix-col-labels {
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--border);
+}
+
+.linsys-row-label,
+.linsys-col-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.linsys-col-label--b {
+  color: #d4a84b;
+}
+
+.linsys-eq {
+  text-align: center;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.linsys-cell {
+  width: 100%;
+  padding: 8px 6px;
+  text-align: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  box-sizing: border-box;
+}
+
+.linsys-cell::placeholder {
+  color: var(--muted);
+  opacity: 0.4;
+}
+
+.linsys-cell--b {
+  border-color: rgba(212, 168, 75, 0.45);
+  background: rgba(212, 168, 75, 0.06);
+}
+
+.linsys-cell:focus {
+  outline: none;
+  border-color: var(--teal);
+}
+
+/* Hide number input spinners on matrix cells */
+.linsys-cell::-webkit-outer-spin-button,
+.linsys-cell::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.linsys-cell {
+  -moz-appearance: textfield;
+}
+
+.linsys-examples {
+  margin-top: 8px;
+}
+
+.linsys-solution-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.linsys-solution-card {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(108, 189, 181, 0.3);
+  background: rgba(108, 189, 181, 0.08);
+  text-align: center;
+}
+
+.linsys-solution-var {
+  display: block;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.linsys-solution-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--teal);
+}
+
+.linsys-warning {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #8a5a10;
+  background: rgba(255, 180, 100, 0.12);
+  border: 1px solid rgba(255, 150, 50, 0.25);
+}
+
+.linsys-steps {
+  margin-top: 16px;
+}
+
+.linsys-steps-title {
+  display: block;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.linsys-step-card {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.linsys-step-label {
+  display: block;
+  font-size: 11px;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.linsys-step-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--teal);
+}
+
+.linsys-step-matrix-wrap {
+  overflow-x: auto;
+}
+
+.linsys-step-matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+}
+
+.linsys-step-matrix td {
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  text-align: right;
+}
+
+.linsys-step-matrix td.linsys-step-augment {
+  background: rgba(212, 168, 75, 0.08);
+  font-weight: 600;
+}
+
+.linsys-meta {
+  margin: 8px 0 0;
+}
+
+@media (max-width: 600px) {
+  .linsys-matrix-col-labels,
+  .linsys-matrix-row {
+    gap: 4px;
+  }
+}

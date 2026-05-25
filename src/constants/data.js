@@ -1,10 +1,20 @@
-export const METHODS = [
+export const ROOT_METHODS = [
   { id: "biseccion", name: "Bisección", type: "cerrado" },
   { id: "reglafalsa", name: "Regla Falsa", type: "cerrado" },
   { id: "newton", name: "Newton-Raphson", type: "abierto" },
   { id: "secante", name: "Secante", type: "abierto" },
   { id: "puntofijo", name: "Punto Fijo", type: "abierto" },
 ];
+
+export const LINEAR_METHODS = [
+  { id: "gauss", name: "Gauss", type: "lineal-directo" },
+  { id: "gaussjordan", name: "Gauss-Jordan", type: "lineal-directo" },
+  { id: "cramer", name: "Cramer", type: "lineal-directo" },
+  { id: "jacobi", name: "Jacobi", type: "lineal-iterativo" },
+  { id: "gaussseidel", name: "Gauss-Seidel", type: "lineal-iterativo" },
+];
+
+export const METHODS = [...ROOT_METHODS, ...LINEAR_METHODS];
 
 export const MOCK_ROWS = [
   { n: 1, a: "1.0000", b: "3.0000", c: "2.0000", fc: "-1.0000", err: "—" },
@@ -51,6 +61,36 @@ export const METHODS_DETAILS = [
     name: "Punto Fijo",
     type: "abierto",
     desc: "Reescribe f(x)=0 como x=g(x) e itera. Converge si |g'(x)| < 1 en el entorno de la raíz.",
+  },
+  {
+    id: "gauss",
+    name: "Eliminación de Gauss",
+    type: "lineal-directo",
+    desc: "Triangulariza [A|b] y resuelve por sustitución hacia atrás. Método directo exacto.",
+  },
+  {
+    id: "gaussjordan",
+    name: "Gauss-Jordan",
+    type: "lineal-directo",
+    desc: "Lleva la matriz ampliada a forma escalonada reducida. Solución directa leyendo la columna b.",
+  },
+  {
+    id: "cramer",
+    name: "Regla de Cramer",
+    type: "lineal-directo",
+    desc: "xᵢ = det(Aᵢ)/det(A). Práctico en sistemas 2×2 y 3×3 con det(A) ≠ 0.",
+  },
+  {
+    id: "jacobi",
+    name: "Jacobi",
+    type: "lineal-iterativo",
+    desc: "Despeja cada incógnita y actualiza todas en paralelo. Converge si A es diagonalmente dominante.",
+  },
+  {
+    id: "gaussseidel",
+    name: "Gauss-Seidel",
+    type: "lineal-iterativo",
+    desc: "Como Jacobi pero usa valores ya actualizados. Suele converger más rápido.",
   },
 ];
 
@@ -158,6 +198,70 @@ export const METHOD_GUIDE = {
         { n: 3, x: "1.956559", gx: "1.989056", err: "1.63%", nota: "|g′(x)| = 1/(2√(x+2)) < 1 ✓" },
       ],
       conclusion: "Converge a x ≈ 2. g′(x) = 1/(2√(x+2)) → en x=2, g′ = 0.25 < 1 ✓",
+    },
+  },
+  gauss: {
+    procedimiento: [
+      "Armar la matriz ampliada [A|b].",
+      "Pivoteo parcial y eliminación hacia abajo hasta forma triangular superior.",
+      "Sustitución hacia atrás para obtener x₁, x₂, …",
+    ],
+    formula: "Ax = b  →  Ux = c",
+    ejemplo: {
+      enunciado: "Sistema 2×2 con solución x₁=1, x₂=2",
+      pasos: [],
+      conclusion: "Método directo: número finito de operaciones si no hay pivote cero.",
+    },
+  },
+  gaussjordan: {
+    procedimiento: [
+      "Formar [A|b] y normalizar cada pivote a 1.",
+      "Eliminar arriba y abajo de cada pivote (forma escalonada reducida).",
+      "Leer la solución en la columna aumentada.",
+    ],
+    formula: "[A|b] → [I|x]",
+    ejemplo: {
+      enunciado: "Misma matriz que Gauss, resultado en forma reducida",
+      pasos: [],
+      conclusion: "Útil para invertir matrices y clasificar sistemas.",
+    },
+  },
+  cramer: {
+    procedimiento: [
+      "Calcular D = det(A). Si D = 0, Cramer no aplica.",
+      "Para cada i, formar Aᵢ reemplazando la columna i por b.",
+      "xᵢ = det(Aᵢ) / D.",
+    ],
+    formula: "xᵢ = det(Aᵢ) / det(A)",
+    ejemplo: {
+      enunciado: "Sistemas 2×2 o 3×3",
+      pasos: [],
+      conclusion: "Eficiente didácticamente; costoso para n grande.",
+    },
+  },
+  jacobi: {
+    procedimiento: [
+      "Despejar xᵢ en cada ecuación i.",
+      "Elegir x⁽⁰⁾ y tolerancia ε.",
+      "Actualizar todas las componentes en paralelo hasta ‖Δx‖∞ < ε.",
+    ],
+    formula: "xᵢ⁽ᵏ⁺¹⁾ = (bᵢ − Σⱼ≠ᵢ aᵢⱼxⱼ⁽ᵏ⁾) / aᵢᵢ",
+    ejemplo: {
+      enunciado: "Requiere aᵢᵢ ≠ 0; converge si A es diagonalmente dominante",
+      pasos: [],
+      conclusion: "Método iterativo para sistemas grandes y dispersos.",
+    },
+  },
+  gaussseidel: {
+    procedimiento: [
+      "Igual que Jacobi, pero al calcular xᵢ⁽ᵏ⁺¹⁾ se usan x₁…xᵢ₋₁ ya actualizados.",
+      "Suele reducir iteraciones respecto a Jacobi.",
+    ],
+    formula: "xᵢ⁽ᵏ⁺¹⁾ usa xⱼ⁽ᵏ⁺¹⁾ para j < i",
+    ejemplo: {
+      enunciado: "Misma entrada que Jacobi",
+      pasos: [],
+      conclusion: "Convergencia típica más rápida que Jacobi bajo las mismas hipótesis.",
     },
   },
 };

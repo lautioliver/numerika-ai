@@ -1,15 +1,34 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useMathEngine } from "../hooks/useMathEngine";
 import { MathResult, MathInput, OperationSelector, MathRenderer } from "../components/MathComponents";
-import { EDOOrdenSuperior } from "./EDOOrdenSuperior";
-import { SistemaEDO } from "./SistemaEDO";
+import { EDOOrdenSuperior } from "../components/HigherOrderStates";
+import { SistemaEDO } from "../components/EDOSystem";
+import { EdoNumerico } from "../components/EdoNumerico";
+import { IntegracionNumerica } from "../components/IntegracionNumerica";
+import { useIka } from "../context/IkaContext";
+
+const OPERATION_LABELS = {
+  derive: "Derivar",
+  integrate: "Integrar (simbólico)",
+  simplify: "Simplificar",
+  factorize: "Factorizar",
+  solve: "Resolver ecuación",
+  edo: "EDO",
+  integracion: "Integración numérica",
+};
+
+const EDO_SUBTAB_LABELS = {
+  orden_superior: "Orden superior (SymPy)",
+  sistema: "Sistema de EDOs (SymPy)",
+  numerico: "Euler / RK4 (cliente)",
+};
 
 const EXAMPLE_EXPRESSIONS = {
-  derive:    ["x^3 - 2*x + 1", "sin(x)*cos(x)", "exp(x)*x^2", "ln(x)/x"],
+  derive: ["x^3 - 2*x + 1", "sin(x)*cos(x)", "exp(x)*x^2", "ln(x)/x"],
   integrate: ["x^2", "sin(x)", "1/(1+x^2)", "exp(-x)"],
-  simplify:  ["(x^2 - 1)/(x - 1)", "sin(x)^2 + cos(x)^2", "(a+b)^2 - a^2 - 2*a*b"],
+  simplify: ["(x^2 - 1)/(x - 1)", "sin(x)^2 + cos(x)^2", "(a+b)^2 - a^2 - 2*a*b"],
   factorize: ["x^2 - 4", "x^3 - 8", "x^2 + 5*x + 6", "x^4 - 1"],
-  solve:     ["x^2 - 4 = 0", "x^2 + 2*x - 3 = 0", "sin(x) = 0", "exp(x) = 1"],
+  solve: ["x^2 - 4 = 0", "x^2 + 2*x - 3 = 0", "sin(x) = 0", "exp(x) = 1"],
 };
 
 export function CalculadoraPage() {
@@ -28,6 +47,29 @@ export function CalculadoraPage() {
   const [edoSubTab, setEdoSubTab] = useState("orden_superior");
   const isEdoMode = operation === "edo";
 
+  // ─── MODO INTEGRACIÓN NUMÉRICA ───
+  const isIntegracionMode = operation === "integracion";
+
+  // ─── Contexto para IKA ───
+  const { updateContext } = useIka();
+  useEffect(() => {
+    const opLabel = OPERATION_LABELS[operation] || operation;
+    let details = `El usuario está en la Calculadora simbólica usando el modo "${opLabel}".`;
+    if (operation === "edo") {
+      details += ` Subtab EDO: ${EDO_SUBTAB_LABELS[edoSubTab] || edoSubTab}.`;
+    }
+    if (expression?.trim()) {
+      details += ` Expresión actual: ${expression}.`;
+    } else {
+      details += ` Aún no ingresó ninguna expresión.`;
+    }
+    if (result?.plain) {
+      details += ` Último resultado: ${result.plain}.`;
+    }
+    details += ` Motor simbólico ${serverUp === true ? "conectado" : serverUp === false ? "DESCONECTADO" : "verificándose"}.`;
+    updateContext(`Calculadora · ${opLabel}`, details);
+  }, [operation, edoSubTab, expression, result, serverUp, updateContext]);
+
   // ─── Lógica principal ───
   useEffect(() => {
     checkHealth().then(setServerUp);
@@ -43,18 +85,19 @@ export function CalculadoraPage() {
     try {
       let res;
       switch (operation) {
-        case "derive":    res = await derive(expression, variable); break;
+        case "derive": res = await derive(expression, variable); break;
         case "integrate": res = await integrate(expression, variable, lowerBound || null, upperBound || null); break;
-        case "simplify":  res = await simplify(expression, variable); break;
+        case "simplify": res = await simplify(expression, variable); break;
         case "factorize": res = await factorize(expression, variable); break;
-        case "solve":     res = await solve(expression, variable); break;
-        case "edo":       res = null; break; // Manejado por componentes EDO
-        default:          return;
+        case "solve": res = await solve(expression, variable); break;
+        case "edo": res = null; break; // Manejado por componentes EDO
+        case "integracion": res = null; break; // Manejado por IntegracionNumerica (client-side)
+        default: return;
       }
       if (res) {
         setResult(res);
-        // Guardar en historial si NO es EDO
-        if (operation !== "edo") {
+        // Guardar en historial si NO es EDO ni Integración
+        if (operation !== "edo" && operation !== "integracion") {
           addHistory({ operation, expression, result: res, variable });
         }
       }
@@ -63,11 +106,6 @@ export function CalculadoraPage() {
 
   const handleKeyDown = (e) => { if (e.key === "Enter" && !loading) handleCalculate(); };
   const handleExample = (ex) => { setExpression(ex); setResult(null); clearError(); };
-  const resetEDO = () => ({
-    equation: "y'' + y = 0",
-    ics: [{ d: "0", at: "0", v: "1" }, { d: "1", at: "0", v: "0" }],
-    result: null
-  });
 
   return (
     <div className="solver calculadora-page fade-up" id="calculadora-page">
@@ -86,36 +124,31 @@ export function CalculadoraPage() {
       </div>
 
       {/* Operation tabs */}
-      <OperationSelector selected={operation} onSelect={setOperation} />
+      <OperationSelector selected={operation} onSelect={setOperation} includeEdo includeIntegracion />
 
-      {/* BOTÓN MODELO EDO (NUEVO) */}
-      <div className="edo-tab-inject">
-        <button
-          className={`edo-main-tab ${isEdoMode ? "edo-main-tab--active" : ""}`}
-          onClick={() => setOperation("edo")}
-          id="tab-edo"
-        >
-          <span className="edo-main-tab-icon">∂</span>
-          EDO
-          <span className="edo-main-tab-new">Nuevo</span>
-        </button>
-      </div>
+      {/* ─── MODO INTEGRACIÓN NUMÉRICA (TRAPECIO · SIMPSON) ─── */}
+      {isIntegracionMode && (
+        <div className="intnum-section fade-up-2" id="intnum-section">
+          <IntegracionNumerica />
+        </div>
+      )}
 
-      {/* ─── MODO EDO ─── */}
       {isEdoMode && (
-        <div className="edo-section fade-up" id="edo-section">
-          {/* Sub-tabs */}
-          <div className="edo-subtabs">
-            {["orden_superior", "sistema"].map(tab => (
+        <div className="edo-section fade-up-2" id="edo-section">
+          <div className="method-tabs edo-subtabs">
+            {[
+              { id: "orden_superior", name: "Orden Superior", type: "Simbólico · SymPy" },
+              { id: "sistema", name: "Sistema", type: "Simbólico · SymPy" },
+              { id: "numerico", name: "Euler / RK4", type: "Numérico · client-side" },
+            ].map(tab => (
               <button
-                key={tab}
-                className={`edo-subtab ${edoSubTab === tab ? "edo-subtab--active" : ""}`}
-                onClick={() => setEdoSubTab(tab)}
-                id={`edo-subtab-${tab}`}
+                key={tab.id}
+                className={`method-tab ${edoSubTab === tab.id ? "active" : ""}`}
+                onClick={() => setEdoSubTab(tab.id)}
+                id={`edo-subtab-${tab.id}`}
               >
-                <span className="edo-subtab-label">{tab === 'orden_superior' ? "Orden Superior" : "Sistema"}</span>
-                <span className="edo-subtab-tag">{tab === "orden_superior" ? "Nuevo" : ""}</span>
-                <span className="edo-subtab-desc">{tab === 'orden_superior' ? "Ecuaciones lineales no homogéneas" : "Sistemas de ecuaciones"}</span>
+                <span className="tab-name">{tab.name}</span>
+                <span className="tab-type">{tab.type}</span>
               </button>
             ))}
           </div>
@@ -124,12 +157,13 @@ export function CalculadoraPage() {
           <div className="edo-subtab-content">
             {edoSubTab === "orden_superior" && <EDOOrdenSuperior />}
             {edoSubTab === "sistema" && <SistemaEDO />}
+            {edoSubTab === "numerico" && <EdoNumerico />}
           </div>
         </div>
       )}
 
       {/* ─── MODO CONVENCIONAL (OPERACIONES BÁSICAS) ─── */}
-      {!isEdoMode && (
+      {!isEdoMode && !isIntegracionMode && (
         <>
           {/* Main grid */}
           <div className="solver-grid fade-up-2">

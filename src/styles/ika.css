@@ -71,9 +71,10 @@
 /* ─── Chat Window ─── */
 .ika-chat-window {
   pointer-events: auto;
-  width: 380px;
-  height: 520px;
+  width: 440px;
+  height: 640px;
   max-height: calc(100vh - 120px);
+  max-width: calc(100vw - 48px);
   background: rgba(250, 249, 242, 0.96); /* Crema suave */
   backdrop-filter: blur(16px);
   border: 1px solid rgba(221, 219, 200, 0.7);
@@ -95,29 +96,30 @@
   visibility: visible;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
   .ika-chat-window {
     width: calc(100vw - 32px);
     right: 16px;
     bottom: 80px;
-    height: 480px;
+    height: 70vh;
   }
 }
 
 /* ─── Header ─── */
 .ika-header {
-  padding: 18px 20px;
+  padding: 16px 20px;
   border-bottom: 1px solid rgba(221, 219, 200, 0.5);
   background: linear-gradient(to right, var(--surface), rgba(250, 249, 242, 0.5));
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .ika-header-info {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
 .ika-avatar {
@@ -130,6 +132,12 @@
   justify-content: center;
   color: #fff;
   box-shadow: 0 4px 10px rgba(108, 189, 181, 0.3);
+  flex-shrink: 0;
+}
+
+.ika-header-text {
+  min-width: 0;
+  flex: 1;
 }
 
 .ika-header-text h3 {
@@ -148,6 +156,49 @@
   letter-spacing: 0.5px;
   font-weight: 600;
 }
+
+/* Meta-info: modelo + cuota debajo del header principal */
+.ika-meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.ika-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.3px;
+  border-radius: 12px;
+  background: rgba(108, 189, 181, 0.08);
+  border: 1px solid rgba(108, 189, 181, 0.25);
+  color: var(--dark);
+  white-space: nowrap;
+}
+
+.ika-meta-chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+  box-shadow: 0 0 4px var(--teal);
+}
+
+.ika-meta-chip--warn {
+  background: rgba(234, 179, 8, 0.08);
+  border-color: rgba(234, 179, 8, 0.4);
+}
+.ika-meta-chip--warn .ika-meta-chip-dot { background: #eab308; box-shadow: 0 0 4px #eab308; }
+
+.ika-meta-chip--danger {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+.ika-meta-chip--danger .ika-meta-chip-dot { background: #ef4444; box-shadow: 0 0 4px #ef4444; }
 
 /* ─── Messages Area ─── */
 .ika-messages {
@@ -169,17 +220,23 @@
 .ika-msg-row {
   display: flex;
   width: 100%;
+  min-width: 0;
 }
 
 .ika-msg-row.user { justify-content: flex-end; }
 .ika-msg-row.model { justify-content: flex-start; }
 
 .ika-bubble {
-  max-width: 85%;
+  max-width: 88%;
+  min-width: 0;
   padding: 12px 16px;
   font-size: 13.5px;
   line-height: 1.6;
   border-radius: 16px;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 .ika-msg-row.model .ika-bubble {
@@ -200,6 +257,14 @@
 .ika-bubble p { margin: 0 0 8px 0; }
 .ika-bubble p:last-child { margin-bottom: 0; }
 
+/* Listas: a veces Gemini devuelve listas largas con bullets dentro de la burbuja */
+.ika-bubble ul,
+.ika-bubble ol {
+  margin: 6px 0;
+  padding-left: 20px;
+}
+.ika-bubble li { margin: 2px 0; }
+
 .ika-bubble pre {
   background: var(--dark) !important;
   color: var(--cream) !important;
@@ -208,6 +273,45 @@
   overflow-x: auto;
   font-family: 'DM Mono', monospace;
   font-size: 12px;
+  max-width: 100%;
+  box-sizing: border-box;
+  white-space: pre;
+}
+
+.ika-bubble code:not(pre code) {
+  background: rgba(108, 189, 181, 0.1);
+  color: var(--dark);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.ika-msg-row.user .ika-bubble code:not(pre code) {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+/* KaTeX: las fórmulas displayed pueden ser más anchas que la burbuja → scroll horizontal */
+.ika-bubble .katex-display {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0;
+  margin: 8px 0;
+}
+.ika-bubble .katex {
+  font-size: 1em;
+  max-width: 100%;
+}
+.ika-bubble .katex-display > .katex {
+  white-space: nowrap;
+}
+.ika-bubble .katex-display::-webkit-scrollbar { height: 4px; }
+.ika-bubble .katex-display::-webkit-scrollbar-thumb {
+  background: rgba(108, 189, 181, 0.3);
+  border-radius: 2px;
 }
 
 /* ─── Input Area ─── */

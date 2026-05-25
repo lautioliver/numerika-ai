@@ -11,6 +11,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { CalculadoraPage } from "./pages/CalculadoraPage";
 import { useAuth } from "./context/AuthContext";
 import { IkaWidget } from "./components/IkaWidget";
+import { IkaRouteWatcher } from "./components/IkaRouteWatcher";
 import { Footer } from "./components/Footer";
 
 // Import styles
@@ -27,6 +28,7 @@ import "./styles/auth.css";
 import "./styles/ika.css";
 import "./styles/friendly-errors.css";
 import "./styles/calculadora.css";
+import "./styles/plot3d.css";
 
 export default function NumerikaApp() {
   const { loading } = useAuth();
@@ -56,6 +58,7 @@ export default function NumerikaApp() {
   return (
     <div className="app">
       <Navigation />
+      <IkaRouteWatcher />
 
       <main>
         <Routes>

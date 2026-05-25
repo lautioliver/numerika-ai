@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { API_BASE } from "../config/apiBase.js";
 
 const AuthContext = createContext(null);
-
-const API_URL = import.meta.env.VITE_API_URL;
 
 /**
  * AuthProvider — Maneja el estado de autenticación de toda la app.
@@ -32,7 +31,7 @@ export function AuthProvider({ children }) {
 
   async function validateToken(savedToken) {
     try {
-      const res = await fetch(`${API_URL}/api/auth/me`, {
+      const res = await fetch(`${API_BASE}/api/auth/me`, {
         headers: { Authorization: `Bearer ${savedToken}` }
       });
       const data = await res.json();
@@ -54,7 +53,7 @@ export function AuthProvider({ children }) {
 
   // ── Login ────────────────────────────────────────────────────────────────
   async function login(email, password) {
-    const res = await fetch(`${API_URL}/api/auth/login`, {
+    const res = await fetch(`${API_BASE}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -74,7 +73,7 @@ export function AuthProvider({ children }) {
 
   // ── Register ─────────────────────────────────────────────────────────────
   async function register(formData) {
-    const res = await fetch(`${API_URL}/api/auth/register`, {
+    const res = await fetch(`${API_BASE}/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),

@@ -1,20 +1,20 @@
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-let openai = null;
+let genAI = null;
 
 /**
- * Inicializa el cliente de OpenAI (lazy — solo cuando se necesita).
+ * Inicializa el cliente de Gemini (lazy — solo cuando se necesita).
  */
 function getClient() {
-  if (!OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY no está configurada.");
+  if (!GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY no está configurada.");
   }
-  if (!openai) {
-    openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+  if (!genAI) {
+    genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
   }
-  return openai;
+  return genAI;
 }
 
 /**
@@ -43,10 +43,41 @@ function checkRateLimit(ip) {
 }
 
 /**
+ * Inspecciona el estado actual del rate limiter para una IP, SIN incrementar el contador.
+ * Devuelve cuántas peticiones quedan en la ventana de 1 minuto.
+ */
+function getRateLimitStatus(ip) {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+
+  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW) {
+    return {
+      max: RATE_LIMIT_MAX,
+      windowMs: RATE_LIMIT_WINDOW,
+      used: 0,
+      remaining: RATE_LIMIT_MAX,
+      resetInMs: RATE_LIMIT_WINDOW,
+    };
+  }
+
+  const used = Math.min(entry.count, RATE_LIMIT_MAX);
+  return {
+    max: RATE_LIMIT_MAX,
+    windowMs: RATE_LIMIT_WINDOW,
+    used,
+    remaining: Math.max(0, RATE_LIMIT_MAX - used),
+    resetInMs: Math.max(0, RATE_LIMIT_WINDOW - (now - entry.windowStart)),
+  };
+}
+
+/**
  * Genera una explicacion pedagogica sobre un calculo numerico.
  */
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+
 export async function generateExplanation(data, retries = 2) {
   const ai = getClient();
+  const model = ai.getGenerativeModel({ model: GEMINI_MODEL });
 
   const { method, methodId, funcExpr, params, result } = data;
 
@@ -54,19 +85,15 @@ export async function generateExplanation(data, retries = 2) {
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      const response = await ai.chat.completions.create({
-        model: "gpt-4o-mini", // u otro modelo de OpenAI
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7,
-      });
-      return response.choices[0].message.content;
+      const response = await model.generateContent(prompt);
+      return response.response.text();
     } catch (err) {
       const isRateLimit = err.status === 429 || err.message?.includes("429");
       
       if (isRateLimit && attempt < retries) {
         // Esperar antes de reintentar (backoff exponencial)
         const delay = (attempt + 1) * 2000;
-        console.log(`⏳ Rate limit de OpenAI, reintentando en ${delay/1000}s... (intento ${attempt + 1}/${retries})`);
+        console.log(`⏳ Rate limit de Gemini, reintentando en ${delay/1000}s... (intento ${attempt + 1}/${retries})`);
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
       }
@@ -76,7 +103,7 @@ export async function generateExplanation(data, retries = 2) {
   }
 
   // Si llegamos aca, todos los intentos fallaron por rate limit
-  throw new Error("Se agotaron los reintentos por limite de solicitudes de OpenAI.");
+  throw new Error("Se agotaron los reintentos por limite de solicitudes de Gemini.");
 }
 
 /**
@@ -125,36 +152,34 @@ FORMATO: Respondé en 3-5 oraciones. No uses markdown, ni listas, ni encabezados
 export async function chatWithIka(message, context, history = []) {
   const ai = getClient();
 
-  const systemInstruction = `Sos "IKA" (Inteligencia Kasual de Aprendizaje), la asistente educativa súper brillante pero cercana y amigable de la plataforma Numérika-AI para estudiantes universitarios de ingeniería latinoamericanos. No sos ChatGPT, sos IKA.
+  const systemInstruction = `Sos "IKA" (Inteligencia Kasual de Aprendizaje), la asistente educativa súper brillante pero cercana y amigable de la plataforma Numérika-AI para estudiantes universitarios de ingeniería latinoamericanos. No sos ChatGPT, no sos Gemini, sos IKA.
 Tu rol es ayudar al estudiante a entender los métodos numéricos que está usando o estudiando en la plataforma.
 Respondé usando markdown, sin excederte en longitud, sé precisa y al punto pero empática.
 Contexto actual del sistema/página donde está el usuario (esta info es secreta, usala para entender qué hace): 
 [${context}]`;
 
-  const formattedHistory = [
-    { role: "system", content: systemInstruction }
-  ];
+  const model = ai.getGenerativeModel({ 
+    model: GEMINI_MODEL,
+    systemInstruction: systemInstruction,
+  });
 
+  // Construir el historial en formato Gemini
+  const geminiHistory = [];
   for (const msg of history) {
-    const role = msg.role === 'user' ? 'user' : 'assistant';
-    formattedHistory.push({ role, content: msg.content });
+    geminiHistory.push({
+      role: msg.role === 'user' ? 'user' : 'model',
+      parts: [{ text: msg.content }],
+    });
   }
 
-  // Agrega el mensaje nuevo del usuario
-  formattedHistory.push({ role: "user", content: message });
-
   try {
-    const response = await ai.chat.completions.create({
-      model: "gpt-4o-mini", 
-      messages: formattedHistory,
-      temperature: 0.7,
-    });
-    
-    return response.choices[0].message.content;
+    const chat = model.startChat({ history: geminiHistory });
+    const result = await chat.sendMessage(message);
+    return result.response.text();
   } catch (err) {
     console.error("Error en chatWithIka:", err);
     throw err;
   }
 }
 
-export { checkRateLimit };
+export { checkRateLimit, getRateLimitStatus, GEMINI_MODEL };

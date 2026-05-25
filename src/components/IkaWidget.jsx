@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useIka } from '../context/IkaContext';
+import { API_BASE } from '../config/apiBase.js';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -14,13 +15,25 @@ export const IkaWidget = () => {
     const [messages, setMessages] = useState([]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [status, setStatus] = useState(null); // { model, rateLimit: { remaining, max } }
     const messagesEndRef = useRef(null);
+
+    const refreshStatus = useCallback(async () => {
+        try {
+            const res = await fetch(`${API_BASE}/api/ai/status`);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data?.success) setStatus(data);
+        } catch (err) {
+            console.warn("No se pudo refrescar el status de IKA:", err.message);
+        }
+    }, []);
 
     useEffect(() => {
         // Cargar historial de mensajes de la base de datos al iniciar o loguear
         const loadHistory = async () => {
             try {
-                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ai/chat/history`, {
+                const res = await fetch(`${API_BASE}/api/ai/chat/history`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
@@ -41,7 +54,10 @@ export const IkaWidget = () => {
         if (isOpen && messages.length === 0) {
             loadHistory();
         }
-    }, [isOpen, user, token, messages.length]);
+        if (isOpen) {
+            refreshStatus();
+        }
+    }, [isOpen, user, token, messages.length, refreshStatus]);
 
     useEffect(() => {
         if (messagesEndRef.current) {
@@ -66,7 +82,7 @@ export const IkaWidget = () => {
         };
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/ai/chat`, {
+            const response = await fetch(`${API_BASE}/api/ai/chat`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -90,6 +106,7 @@ export const IkaWidget = () => {
             setMessages(prev => [...prev, { role: 'model', content: 'No pude conectarme con el servidor ahora mismo.' }]);
         } finally {
             setIsLoading(false);
+            refreshStatus();
         }
     };
 
@@ -131,6 +148,25 @@ export const IkaWidget = () => {
                             <h3>IKA</h3>
                             <p>Asistente Contextual</p>
                         </div>
+                    </div>
+
+                    {/* Meta-info: modelo + cuota */}
+                    <div className="ika-meta">
+                        <span className="ika-meta-chip" title="Modelo de Gemini en uso">
+                            <span className="ika-meta-chip-dot" />
+                            {status?.model || 'gemini-…'}
+                        </span>
+                        {status?.rateLimit && (() => {
+                            const { remaining, max } = status.rateLimit;
+                            const ratio = remaining / max;
+                            const cls = ratio > 0.4 ? '' : ratio > 0 ? ' ika-meta-chip--warn' : ' ika-meta-chip--danger';
+                            return (
+                                <span className={`ika-meta-chip${cls}`} title={`Te quedan ${remaining} de ${max} preguntas por minuto`}>
+                                    <span className="ika-meta-chip-dot" />
+                                    {remaining}/{max} ·/min
+                                </span>
+                            );
+                        })()}
                     </div>
                 </div>
 

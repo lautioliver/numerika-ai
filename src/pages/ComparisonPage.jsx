@@ -8,6 +8,7 @@ import {
 } from "../utils/numericalMethods";
 import { METHODS } from "../constants/data";
 import { useIka } from "../context/IkaContext";
+import { API_BASE } from "../config/apiBase.js";
 import { FriendlyErrorBox } from "../components/FriendlyErrorBox";
 import { getFriendlyError } from "../utils/friendlyErrors";
 import {
@@ -74,7 +75,6 @@ export const ComparisonPage = () => {
   // Expandir detalles de error por método
   const [expandedErrors, setExpandedErrors] = useState({});
 
-  const API_URL = import.meta.env.VITE_API_URL;
 
   const toggleErrorDetail = (idx) => {
     setExpandedErrors((prev) => ({ ...prev, [idx]: !prev[idx] }));
@@ -135,7 +135,7 @@ export const ComparisonPage = () => {
     ).join("\n");
 
     try {
-      const res = await fetch(`${API_URL}/api/ai/explain`, {
+      const res = await fetch(`${API_BASE}/api/ai/explain`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

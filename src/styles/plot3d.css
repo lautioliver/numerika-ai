@@ -1,0 +1,791 @@
+/* ═══════════════════════════════════════════════════════════════════════════════
+   Plot3D Modal — NumérikaAI
+   Visualización 3D interactiva (Plotly.js)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Overlay ────────────────────────────────────────────────────────────────── */
+.plot3d-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 10000;
+  background: rgba(26, 31, 30, 0.68);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+  animation: plot3dFadeIn 0.28s ease forwards;
+}
+
+@keyframes plot3dFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ─── Modal ──────────────────────────────────────────────────────────────────── */
+.plot3d-modal {
+  background: var(--surface, #faf9f2);
+  border: 1px solid var(--border, #dddbc8);
+  border-radius: 18px;
+  width: min(1320px, 98vw);
+  max-height: min(94vh, 94dvh);
+  height: min(900px, 94vh, 94dvh);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow:
+    0 24px 64px rgba(26, 31, 30, 0.22),
+    0 0 0 1px rgba(108, 189, 181, 0.08);
+  animation: plot3dSlideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes plot3dSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ─── Header ─────────────────────────────────────────────────────────────────── */
+.plot3d-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 22px 16px;
+  border-bottom: 1px solid var(--border, #dddbc8);
+  background: linear-gradient(
+    180deg,
+    rgba(108, 189, 181, 0.07) 0%,
+    rgba(108, 189, 181, 0.02) 100%
+  );
+  flex-shrink: 0;
+}
+
+.plot3d-header-brand {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.plot3d-header-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(108, 189, 181, 0.14);
+  border: 1px solid rgba(108, 189, 181, 0.28);
+  border-radius: 10px;
+  color: var(--teal, #6CBDB5);
+  flex-shrink: 0;
+}
+
+.plot3d-header-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.plot3d-header-eyebrow {
+  display: block;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--muted, #7a8a82);
+  margin-bottom: 4px;
+}
+
+.plot3d-header-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.15rem;
+  font-weight: 400;
+  line-height: 1.25;
+  color: var(--dark, #1A1F1E);
+  margin: 0;
+}
+
+.plot3d-header-title em {
+  font-style: italic;
+  color: var(--teal, #6CBDB5);
+}
+
+.plot3d-header-subtitle {
+  display: block;
+  margin-top: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted, #7a8a82);
+  letter-spacing: 0.3px;
+  line-height: 1.45;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plot3d-header-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--teal, #6CBDB5);
+  padding: 5px 12px;
+  border: 1px solid rgba(108, 189, 181, 0.35);
+  border-radius: 20px;
+  background: rgba(108, 189, 181, 0.1);
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.plot3d-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.plot3d-header-export {
+  flex-shrink: 0;
+}
+
+.plot3d-close {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border, #dddbc8);
+  border-radius: 10px;
+  background: var(--surface, #faf9f2);
+  color: var(--muted, #7a8a82);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.plot3d-close:hover {
+  border-color: rgba(196, 30, 58, 0.45);
+  color: #c41e3a;
+  background: rgba(255, 100, 100, 0.06);
+}
+
+/* ─── Toolbar ────────────────────────────────────────────────────────────────── */
+.plot3d-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 22px;
+  border-bottom: 1px solid var(--border, #dddbc8);
+  background: var(--bg, #f5f3e8);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.plot3d-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.plot3d-toolbar-group-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted, #7a8a82);
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.plot3d-tool-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border: 1px solid var(--border, #dddbc8);
+  border-radius: 8px;
+  background: var(--surface, #faf9f2);
+  color: var(--muted, #7a8a82);
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s, box-shadow 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.plot3d-tool-btn:hover {
+  border-color: var(--teal-lt, #93CCC6);
+  color: var(--teal, #6CBDB5);
+  background: rgba(108, 189, 181, 0.06);
+}
+
+.plot3d-tool-btn.active {
+  background: rgba(108, 189, 181, 0.14);
+  border-color: var(--teal, #6CBDB5);
+  color: var(--teal, #6CBDB5);
+  box-shadow: 0 0 0 1px rgba(108, 189, 181, 0.15);
+}
+
+.plot3d-tool-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.plot3d-tool-btn--danger:hover {
+  border-color: rgba(196, 30, 58, 0.45);
+  color: #c41e3a;
+  background: rgba(255, 100, 100, 0.06);
+}
+
+.plot3d-tool-icon {
+  width: 12px;
+  height: 12px;
+  opacity: 0.85;
+}
+
+.plot3d-tool-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border, #dddbc8);
+  flex-shrink: 0;
+}
+
+.plot3d-toolbar-spacer {
+  flex: 1;
+  min-width: 8px;
+}
+
+.plot3d-layer-toggle {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  padding: 6px 12px;
+  border: 1px solid var(--border, #dddbc8);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--muted, #7a8a82);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.plot3d-layer-toggle.active {
+  background: rgba(108, 189, 181, 0.12);
+  border-color: var(--teal, #6CBDB5);
+  color: var(--teal, #6CBDB5);
+}
+
+.plot3d-layer-toggle:hover:not(.active) {
+  border-color: var(--teal-lt, #93CCC6);
+}
+
+/* ─── Variable selector ──────────────────────────────────────────────────────── */
+.plot3d-var-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 22px;
+  border-bottom: 1px solid var(--border, #dddbc8);
+  background: rgba(227, 223, 186, 0.12);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.plot3d-var-selector-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted, #7a8a82);
+}
+
+.plot3d-var-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.plot3d-var-axis-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--teal, #6CBDB5);
+  min-width: 14px;
+}
+
+.plot3d-var-select {
+  background: var(--surface, #faf9f2);
+  border: 1px solid var(--border, #dddbc8);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text, #1A1F1E);
+  cursor: pointer;
+  min-width: 72px;
+  transition: border-color 0.2s;
+}
+
+.plot3d-var-select:focus {
+  outline: none;
+  border-color: var(--teal, #6CBDB5);
+}
+
+/* ─── Annotations strip ──────────────────────────────────────────────────────── */
+.plot3d-annotations-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 22px;
+  border-bottom: 1px solid var(--border, #dddbc8);
+  background: rgba(108, 189, 181, 0.04);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  min-height: 0;
+}
+
+.plot3d-annotations-strip-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted, #7a8a82);
+}
+
+.plot3d-annotation-chip {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  padding: 4px 10px;
+  border-radius: 16px;
+  background: rgba(227, 223, 186, 0.35);
+  border: 1px solid rgba(108, 189, 181, 0.25);
+  color: var(--text, #1A1F1E);
+}
+
+/* ─── Chart area ─────────────────────────────────────────────────────────────── */
+.plot3d-chart-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 18px 18px;
+  background: var(--bg, #f5f3e8);
+  position: relative;
+}
+
+.plot3d-chart {
+  flex: 1;
+  min-height: 480px;
+  position: relative;
+  border-radius: 12px;
+  border: 1px solid var(--border, #dddbc8);
+  background: rgb(232, 228, 210);
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.plot3d-chart--point-mode {
+  border-color: var(--teal, #6CBDB5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 0 0 2px rgba(108, 189, 181, 0.2);
+  animation: plot3dPointPulse 2s ease-in-out infinite;
+}
+
+@keyframes plot3dPointPulse {
+  0%, 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 0 0 2px rgba(108,189,181,0.15); }
+  50%      { box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 0 0 3px rgba(108,189,181,0.35); }
+}
+
+.plot3d-chart .js-plotly-plot,
+.plot3d-chart .plot-container {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.plot3d-chart-inner {
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+}
+
+/* ─── Loading / error ────────────────────────────────────────────────────────── */
+.plot3d-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 420px;
+  gap: 18px;
+  color: var(--muted, #7a8a82);
+  padding: 40px;
+}
+
+.plot3d-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2.5px solid var(--border, #dddbc8);
+  border-top-color: var(--teal, #6CBDB5);
+  border-radius: 50%;
+  animation: plot3dSpin 0.75s linear infinite;
+}
+
+@keyframes plot3dSpin {
+  to { transform: rotate(360deg); }
+}
+
+.plot3d-loading-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-align: center;
+  max-width: 280px;
+  line-height: 1.6;
+}
+
+.plot3d-loading--error .plot3d-loading-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 100, 100, 0.1);
+  border: 1px solid rgba(196, 30, 58, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c41e3a;
+  font-size: 20px;
+}
+
+/* ─── Footer ─────────────────────────────────────────────────────────────────── */
+.plot3d-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 22px;
+  border-top: 1px solid var(--border, #dddbc8);
+  background: var(--surface, #faf9f2);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.plot3d-footer-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.plot3d-hint-pill {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.5px;
+  color: var(--muted, #7a8a82);
+  padding: 4px 10px;
+  background: var(--bg, #f5f3e8);
+  border: 1px solid var(--border, #dddbc8);
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.plot3d-hint-pill kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  background: var(--surface, #faf9f2);
+  border: 1px solid var(--border, #dddbc8);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 8px;
+  color: var(--text, #1A1F1E);
+}
+
+.plot3d-hint-pill--active {
+  border-color: rgba(108, 189, 181, 0.4);
+  background: rgba(108, 189, 181, 0.08);
+  color: var(--teal, #6CBDB5);
+}
+
+.plot3d-powered {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted, #7a8a82);
+  opacity: 0.7;
+}
+
+/* ─── Annotation prompt ──────────────────────────────────────────────────────── */
+.plot3d-annotation-prompt {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface, #faf9f2);
+  border: 1px solid var(--teal, #6CBDB5);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 8px 32px rgba(26, 31, 30, 0.18);
+  z-index: 10;
+  animation: plot3dSlideUp 0.22s ease;
+  max-width: calc(100% - 32px);
+}
+
+.plot3d-annotation-prompt-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--teal, #6CBDB5);
+  white-space: nowrap;
+}
+
+.plot3d-annotation-input {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--border, #dddbc8);
+  border-radius: 8px;
+  background: var(--bg, #f5f3e8);
+  color: var(--text, #1A1F1E);
+  outline: none;
+  width: 160px;
+  min-width: 100px;
+}
+
+.plot3d-annotation-input:focus {
+  border-color: var(--teal, #6CBDB5);
+}
+
+.plot3d-annotation-confirm {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  background: var(--teal, #6CBDB5);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.plot3d-annotation-confirm:hover {
+  background: #5aada5;
+}
+
+.plot3d-annotation-cancel {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid var(--border, #dddbc8);
+  border-radius: 8px;
+  color: var(--muted, #7a8a82);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.plot3d-annotation-cancel:hover {
+  border-color: var(--muted, #7a8a82);
+  color: var(--text, #1A1F1E);
+}
+
+/* ─── Trigger button (en paneles EDO) ────────────────────────────────────────── */
+.plot3d-trigger-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border: 1px solid rgba(108, 189, 181, 0.4);
+  border-radius: 8px;
+  background: linear-gradient(
+    180deg,
+    rgba(108, 189, 181, 0.12) 0%,
+    rgba(108, 189, 181, 0.06) 100%
+  );
+  color: var(--teal, #6CBDB5);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s, transform 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.plot3d-trigger-btn:hover {
+  background: rgba(108, 189, 181, 0.18);
+  border-color: var(--teal, #6CBDB5);
+  box-shadow: 0 4px 14px rgba(108, 189, 181, 0.2);
+  transform: translateY(-1px);
+}
+
+.plot3d-trigger-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.plot3d-trigger-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.plot3d-trigger-icon svg {
+  display: block;
+}
+
+.plot3d-trigger-label {
+  line-height: 1;
+}
+
+/* graph header con botón 3D */
+.graph-header--with-3d {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.math-result-header .plot3d-trigger-btn {
+  margin-left: auto;
+}
+
+/* ─── Plotly modebar ─────────────────────────────────────────────────────────── */
+.plot3d-chart .modebar {
+  top: 12px !important;
+  left: 12px !important;
+  right: auto !important;
+  background: rgba(250, 249, 242, 0.95) !important;
+  border: 1px solid var(--border, #dddbc8) !important;
+  border-radius: 8px !important;
+  padding: 4px 6px !important;
+  box-shadow: 0 2px 10px rgba(26, 31, 30, 0.08);
+}
+
+.plot3d-chart .modebar-btn {
+  color: var(--muted, #7a8a82) !important;
+}
+
+.plot3d-chart .modebar-btn:hover {
+  color: var(--teal, #6CBDB5) !important;
+}
+
+.plot3d-chart .modebar-btn.active {
+  color: var(--teal, #6CBDB5) !important;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .plot3d-overlay {
+    padding: 10px;
+  }
+
+  .plot3d-modal {
+    width: 100%;
+    max-height: 96dvh;
+    height: 96dvh;
+    border-radius: 14px;
+  }
+
+  .plot3d-chart-wrap {
+    padding: 12px;
+  }
+
+  .plot3d-chart,
+  .plot3d-chart-inner {
+    min-height: 340px;
+  }
+
+  .plot3d-header-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .plot3d-header-export {
+    font-size: 8px;
+    padding: 6px 10px;
+  }
+
+  .plot3d-toolbar {
+    padding: 10px 14px;
+    gap: 8px;
+  }
+
+  .plot3d-tool-btn {
+    font-size: 8px;
+    padding: 6px 10px;
+  }
+
+  .plot3d-header {
+    padding: 14px 16px 12px;
+  }
+
+  .plot3d-header-title {
+    font-size: 1rem;
+  }
+
+  .plot3d-footer {
+    padding: 10px 14px;
+  }
+
+  .plot3d-annotation-prompt {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .plot3d-annotation-input {
+    width: 100%;
+    flex: 1 1 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .plot3d-header-badge {
+    display: none;
+  }
+
+  .plot3d-tool-divider {
+    display: none;
+  }
+
+  .plot3d-toolbar-group-label {
+    width: 100%;
+    margin-bottom: 2px;
+  }
+
+  .plot3d-footer-hints {
+    width: 100%;
+  }
+
+  .plot3d-powered {
+    width: 100%;
+    text-align: center;
+  }
+}

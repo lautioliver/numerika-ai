@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { resolverGauss } from './SystemEcuation.js';
+import { resolverGauss } from './systemEquation.js';
 
 // ─── Componente Principal ─────────────────────────────────────────────────────
 // Modelo: Análisis de Circuitos por Método de Mallas usando Eliminación de Gauss.

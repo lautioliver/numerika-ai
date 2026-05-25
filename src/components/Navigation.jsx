@@ -17,12 +17,12 @@ const NAV_ROUTES = {
 // Iconos temáticos para el drawer mobile
 const NAV_ICONS = {
   home: "⌂",
-  solver: "∑",
-  comparar: "⇌",
-  metodos: "📐",
-  amn: "⚙",
-  calculadora: "🧮",
-  docs: "📄",
+  solver: "●",
+  comparar: "●",
+  metodos: "●",
+  amn: "●",
+  calculadora: "●",
+  docs: "●",
 };
 
 // Links que se agrupan bajo "Herramientas" en tablet

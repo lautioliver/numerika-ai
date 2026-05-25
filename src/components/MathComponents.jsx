@@ -91,10 +91,18 @@ const OPS = [
   { id:"solve", label:"Resolver", icon:"✓", hint:"x = ?" },
 ];
 
-export function OperationSelector({ selected, onSelect }) {
+const EDO_TAB = { id: "edo", label: "EDO", icon: "∂", hint: "Ecuaciones diferenciales" };
+const INTEGRACION_TAB = { id: "integracion", label: "Integración", icon: "∫ₐᵇ", hint: "Integración numérica (Trapecio · Simpson)" };
+
+export function OperationSelector({ selected, onSelect, includeEdo = false, includeIntegracion = false }) {
+  const tabs = [
+    ...OPS,
+    ...(includeEdo ? [EDO_TAB] : []),
+    ...(includeIntegracion ? [INTEGRACION_TAB] : []),
+  ];
   return (
     <div className="calc-operations" id="operation-selector">
-      {OPS.map(op => (
+      {tabs.map(op => (
         <button key={op.id} className={`calc-op-tab ${selected === op.id ? "active" : ""}`}
           onClick={() => onSelect(op.id)} id={`op-tab-${op.id}`} title={op.hint}>
           <span className="calc-op-icon">{op.icon}</span>

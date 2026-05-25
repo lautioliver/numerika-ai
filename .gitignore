@@ -24,8 +24,16 @@ dist-ssr
 *.sw?
 
 .env
+.env.local
+.env.*.local
 build
 
 # Database
 *.db
 *.db-*
+
+# Python (math engine)
+__pycache__/
+*.py[cod]
+backend/venv/
+backend/ode_req.json

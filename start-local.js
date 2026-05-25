@@ -43,10 +43,14 @@ const apiProcess = runCommand('node', ['api/index.js'], 'API Backend', 36);
 // 2. Iniciar el Frontend (Vite) - Color Magenta (35)
 const webProcess = runCommand('npm', ['run', 'dev'], 'Vite Frontend', 35);
 
+// 3. Iniciar el Motor Matemático (Python) - Color Yellow (33)
+const mathProcess = runCommand('cmd.exe', ['/c', 'start-math-engine.bat'], 'Math Engine', 33);
+
 // Manejar cierre
 process.on('SIGINT', () => {
   console.log("\n🛑 Cerrando todos los servicios...");
   apiProcess.kill('SIGINT');
   webProcess.kill('SIGINT');
+  mathProcess.kill('SIGINT');
   process.exit(0);
 });

@@ -5,15 +5,25 @@ import bcrypt from 'bcrypt';
 import helmet from 'helmet';
 import { query } from '../src/config/db.js';
 import { generateToken, authMiddleware } from '../src/middleware/auth.js';
-import { generateExplanation, checkRateLimit, chatWithIka } from '../src/services/ai.js';
+import { generateExplanation, checkRateLimit, chatWithIka, getRateLimitStatus, GEMINI_MODEL } from '../src/services/ai.js';
 
 const app = express();
 
 // --- MIDDLEWARES ---
 
 // 1. CORS — DEBE ir primero para que OPTIONS preflight funcione
+const corsOrigins = new Set([
+    'http://localhost:5173',
+    'https://numerika-ai.vercel.app',
+]);
+if (process.env.VERCEL_URL) {
+    corsOrigins.add(`https://${process.env.VERCEL_URL}`);
+}
+if (process.env.VERCEL_BRANCH_URL) {
+    corsOrigins.add(`https://${process.env.VERCEL_BRANCH_URL}`);
+}
 const corsOptions = {
-    origin: ['https://numerika-ai.vercel.app', 'http://localhost:5173'],
+    origin: [...corsOrigins],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -84,7 +94,12 @@ app.post('/api/auth/register', async (req, res) => {
         });
 
     } catch (err) {
-        if (err.code === '23505') {
+        // 23505 = unique_violation en PostgreSQL · SQLITE_CONSTRAINT_UNIQUE en SQLite
+        const isDuplicate =
+            err.code === '23505' ||
+            err.code === 'SQLITE_CONSTRAINT_UNIQUE' ||
+            /UNIQUE constraint failed/i.test(err.message || '');
+        if (isDuplicate) {
             return res.status(400).json({ success: false, error: "El email ya está registrado." });
         }
         console.error("Error en register:", err.message);
@@ -160,6 +175,21 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
 
 // --- IA ---
 
+// ── STATUS DE IKA (modelo + rate limit restante) ──────────────────────────────
+// Endpoint público liviano para que el widget muestre qué modelo está corriendo
+// y cuántas peticiones le quedan al usuario en la ventana actual.
+app.get('/api/ai/status', (req, res) => {
+    const clientIp = req.ip || req.connection?.remoteAddress || 'unknown';
+    const status = getRateLimitStatus(clientIp);
+    const geminiConfigured = Boolean(process.env.GEMINI_API_KEY);
+    res.json({
+        success: true,
+        model: GEMINI_MODEL,
+        geminiConfigured,
+        rateLimit: status,
+    });
+});
+
 // ── EXPLICACIÓN IA ────────────────────────────────────────────────────────────
 app.post('/api/ai/explain', async (req, res) => {
     const clientIp = req.ip || req.connection?.remoteAddress || 'unknown';
@@ -189,7 +219,7 @@ app.post('/api/ai/explain', async (req, res) => {
     } catch (err) {
         console.error("Error en /api/ai/explain:", err.message);
         
-        if (err.message.includes("OPENAI_API_KEY")) {
+        if (err.message.includes("GEMINI_API_KEY")) {
             return res.status(503).json({ 
                 success: false, 
                 error: "El servicio de IA no está configurado aún." 
@@ -260,7 +290,7 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
         // así que el historial NO debe incluir el mensaje actual.
         const history = historyResult.rows.slice(0, -1);
 
-        // 3. Generar la respuesta via OpenAI
+        // 3. Generar la respuesta via Gemini
         const reply = await chatWithIka(message, context || "Sin contexto", history);
 
         // 4. Guardar la respuesta de IKA en la BD
@@ -280,8 +310,17 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
 const PORT = process.env.PORT || 3000; 
 
 if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
         console.log(`🚀 Servidor de NumerikaAI encendido en el puerto: ${PORT}`);
+    });
+
+    server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            console.error(`❌ Error: El puerto ${PORT} ya está en uso. Por favor, libera el puerto y vuelve a intentar.`);
+            process.exit(1);
+        } else {
+            console.error('❌ Error en el servidor Express:', err);
+        }
     });
 }
 

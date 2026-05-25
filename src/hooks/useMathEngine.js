@@ -10,8 +10,10 @@
 
 import { useState, useCallback, useRef } from "react";
 
+/** En prod sin VITE_MATH_ENGINE_URL no apunta a localhost (motor solo local). */
 const DEFAULT_URL =
-  import.meta.env.VITE_MATH_ENGINE_URL || "http://localhost:8000";
+  import.meta.env.VITE_MATH_ENGINE_URL ||
+  (import.meta.env.DEV ? "http://localhost:8000" : "");
 
 export function useMathEngine(baseUrl = DEFAULT_URL) {
   const [loading, setLoading] = useState(false);
@@ -107,8 +109,27 @@ export function useMathEngine(baseUrl = DEFAULT_URL) {
     [request]
   );
 
+  const odeSolve = useCallback(
+    (equation, initialConditions = []) =>
+      request("/api/math/ode/solve", {
+        equation,
+        initial_conditions: initialConditions,
+      }),
+    [request]
+  );
+
+  const odeSystem = useCallback(
+    (equations, initialConditions = {}) =>
+      request("/api/math/ode/system", {
+        equations,
+        initial_conditions: initialConditions,
+      }),
+    [request]
+  );
+
   // ── Health check (GET) ──────────────────────────────────────────────────
   const checkHealth = useCallback(async () => {
+    if (!baseUrl) return false;
     try {
       const res = await fetch(`${baseUrl}/health`);
       if (!res.ok) return false;
@@ -126,6 +147,8 @@ export function useMathEngine(baseUrl = DEFAULT_URL) {
     factorize,
     solve,
     validate,
+    odeSolve,
+    odeSystem,
     checkHealth,
     loading,
     error,

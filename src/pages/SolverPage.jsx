@@ -1,10 +1,13 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { METHODS, METHOD_GUIDE } from "../constants/data";
+import { METHODS, ROOT_METHODS, LINEAR_METHODS, METHOD_GUIDE } from "../constants/data";
+import { isLinearSolverMethod } from "../utils/linearSystems";
+import { LinearSystemSolver } from "../components/LinearSystemSolver";
 import { MethodTypeTag } from "../components/MethodTypeTag";
 import { MethodTooltip } from "../components/MethodTooltip";
 import { FriendlyErrorBox } from "../components/FriendlyErrorBox";
 import { useIka } from "../context/IkaContext";
+import { API_BASE } from "../config/apiBase.js";
 import { analyzeConvergence } from "../utils/convergenceAnalyzer";
 import { calculateZoomedRange, getDefaultCenter } from "../utils/graphUtils";
 import {
@@ -108,6 +111,13 @@ export const SolverPage = () => {
   const navigate = useNavigate();
   const activeMethod = methodId || "biseccion";
   const selected = METHODS.find((m) => m.id === activeMethod);
+  const isLinear = isLinearSolverMethod(activeMethod);
+
+  React.useEffect(() => {
+    if (!METHODS.some((m) => m.id === activeMethod)) {
+      navigate("/solver/biseccion", { replace: true });
+    }
+  }, [activeMethod, navigate]);
 
   const [funcExpr, setFuncExpr] = useState("x^2 - x - 2");
   const [aValue, setAValue] = useState("1");
@@ -173,7 +183,6 @@ export const SolverPage = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState(null);
 
-  const API_URL = import.meta.env.VITE_API_URL;
 
   const fetchAiExplanation = async (calcResult) => {
     setAiLoading(true);
@@ -181,7 +190,7 @@ export const SolverPage = () => {
     setAiError(null);
 
     try {
-      const res = await fetch(`${API_URL}/api/ai/explain`, {
+      const res = await fetch(`${API_BASE}/api/ai/explain`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -334,19 +343,37 @@ export const SolverPage = () => {
         <h2 className="page-title">Calculá <em>paso a paso</em></h2>
       </div>
 
-      {/* ── Tabs de métodos (con tooltips de documentación) ── */}
-      <div className="method-tabs">
-        {METHODS.map((m) => (
-          <MethodTooltip key={m.id} methodId={m.id}>
-            <button
-              className={`method-tab${activeMethod === m.id ? " active" : ""}`}
-              onClick={() => handleMethodChange(m.id)}
-            >
-              <span className="tab-name">{m.name}</span>
-              <span className="tab-type">{m.type}</span>
-            </button>
-          </MethodTooltip>
-        ))}
+      <div className="method-tabs-groups">
+        <span className="method-tabs-label">Raíces de f(x)</span>
+        <div className="method-tabs">
+          {ROOT_METHODS.map((m) => (
+            <MethodTooltip key={m.id} methodId={m.id}>
+              <button
+                type="button"
+                className={`method-tab${activeMethod === m.id ? " active" : ""}`}
+                onClick={() => handleMethodChange(m.id)}
+              >
+                <span className="tab-name">{m.name}</span>
+                <span className="tab-type">{m.type}</span>
+              </button>
+            </MethodTooltip>
+          ))}
+        </div>
+        <span className="method-tabs-label">Sistemas lineales Ax = b</span>
+        <div className="method-tabs">
+          {LINEAR_METHODS.map((m) => (
+            <MethodTooltip key={m.id} methodId={m.id}>
+              <button
+                type="button"
+                className={`method-tab${activeMethod === m.id ? " active" : ""}`}
+                onClick={() => handleMethodChange(m.id)}
+              >
+                <span className="tab-name">{m.name}</span>
+                <span className="tab-type">{m.type.replace("lineal-", "")}</span>
+              </button>
+            </MethodTooltip>
+          ))}
+        </div>
       </div>
 
       {/* ── Descripción del método ── */}
@@ -358,11 +385,22 @@ export const SolverPage = () => {
             newton: "Usa f′(x) numérica para convergencia cuadrática. Muy rápido cerca de la raíz.",
             secante: "Aproxima f′(x) con dos puntos. No necesita derivada analítica.",
             puntofijo: "Itera x = g(x). Converge si |g′(x)| < 1 en el entorno de la raíz.",
+            gauss: "Triangulariza la matriz ampliada y obtiene la solución por sustitución hacia atrás.",
+            gaussjordan: "Reduce [A|b] a forma escalonada; la solución aparece en la última columna.",
+            cramer: "Cada incógnita es un cociente de determinantes (2×2 y 3×3).",
+            jacobi: "Despeja cada xᵢ y actualiza en paralelo hasta cumplir la tolerancia.",
+            gaussseidel: "Como Jacobi, reutilizando valores ya actualizados en la misma iteración.",
           }[activeMethod]}
         </div>
       )}
 
-      {/* ── Grid principal ── */}
+      {isLinear ? (
+        <LinearSystemSolver
+          methodId={activeMethod}
+          methodName={selected?.name}
+          methodType={selected?.type}
+        />
+      ) : (
       <div className="solver-grid">
 
         {/* Panel izquierdo: Configuración */}
@@ -650,6 +688,7 @@ export const SolverPage = () => {
         </div>
 
       </div>
+      )}
 
     </div>
   );
