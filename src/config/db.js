@@ -14,16 +14,44 @@ let dbType = 'unknown';
 let initialized = false;
 let initPromise = null;
 
+function buildFromPostgresParts() {
+  const host = process.env.POSTGRES_HOST;
+  const user = process.env.POSTGRES_USER;
+  const password = process.env.POSTGRES_PASSWORD;
+  if (!host || !user || !password) return null;
+
+  const port = process.env.POSTGRES_PORT || (host.includes('pooler') ? '6543' : '5432');
+  const database = process.env.POSTGRES_DATABASE || 'postgres';
+  const encodedUser = encodeURIComponent(user);
+  const encodedPass = encodeURIComponent(password);
+
+  return `postgresql://${encodedUser}:${encodedPass}@${host}:${port}/${database}?sslmode=require`;
+}
+
+export function getDbEnvFlags() {
+  return {
+    DATABASE_URL: Boolean(process.env.DATABASE_URL),
+    POSTGRES_URL: Boolean(process.env.POSTGRES_URL),
+    POSTGRES_PRISMA_URL: Boolean(process.env.POSTGRES_PRISMA_URL),
+    POSTGRES_HOST: Boolean(process.env.POSTGRES_HOST),
+    POSTGRES_USER: Boolean(process.env.POSTGRES_USER),
+    POSTGRES_PASSWORD: Boolean(process.env.POSTGRES_PASSWORD),
+  };
+}
+
 function resolveDatabaseUrl() {
+  const fromParts = buildFromPostgresParts();
   const candidates = process.env.VERCEL
     ? [
         ['POSTGRES_URL', process.env.POSTGRES_URL],
-        ['DATABASE_URL', process.env.DATABASE_URL],
+        ['POSTGRES_PARTS', fromParts],
         ['POSTGRES_PRISMA_URL', process.env.POSTGRES_PRISMA_URL],
+        ['DATABASE_URL', process.env.DATABASE_URL],
       ]
     : [
         ['DATABASE_URL', process.env.DATABASE_URL],
         ['POSTGRES_URL', process.env.POSTGRES_URL],
+        ['POSTGRES_PARTS', fromParts],
         ['POSTGRES_PRISMA_URL', process.env.POSTGRES_PRISMA_URL],
       ];
 

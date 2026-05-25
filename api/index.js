@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import helmet from 'helmet';
-import { query, dbType, getDbConnectionInfo } from '../src/config/db.js';
+import { query, dbType, getDbConnectionInfo, getDbEnvFlags } from '../src/config/db.js';
 import { generateToken, authMiddleware } from '../src/middleware/auth.js';
 import { generateExplanation, checkRateLimit, chatWithIka, getRateLimitStatus, GEMINI_MODEL } from '../src/services/ai.js';
 
@@ -63,6 +63,7 @@ app.get('/api/health', async (req, res) => {
             success: true,
             dbType,
             connection,
+            env: getDbEnvFlags(),
             geminiConfigured: Boolean(process.env.GEMINI_API_KEY),
         });
     } catch (err) {
@@ -70,6 +71,7 @@ app.get('/api/health', async (req, res) => {
             success: false,
             dbType,
             connection,
+            env: getDbEnvFlags(),
             error: err.message,
         });
     }
