@@ -13,6 +13,68 @@
 
 ---
 
+## ⚡ Arranque rápido (1 comando)
+
+Si ya tenés las dependencias instaladas (Node + venv de Python), podés levantar **los 3 servicios juntos** con:
+
+```bash
+npm run start:local
+```
+
+Esto usa `start-local.js`, que lanza con logs de colores:
+
+- **API Express** → `http://localhost:3000`
+- **Frontend Vite** → `http://localhost:5173`
+- **Motor Matemático (Python)** → `http://localhost:8000`
+
+`start-local.js` es **multiplataforma**: detecta el SO y arranca el motor Python usando el intérprete del venv (`backend/venv/bin/python` en Linux/macOS o `backend\venv\Scripts\python.exe` en Windows). Si el venv no existe, omite el motor con un aviso en vez de fallar.
+
+---
+
+## 🐧 Setup en Linux (primera vez)
+
+En Linux Mint/Ubuntu, la instalación pensada para Windows no funciona directamente. Seguí estos pasos:
+
+### 1. Dependencias de Node (limpias para Linux)
+
+Si copiaste el proyecto desde Windows, `node_modules` trae binarios de Windows (esbuild, better-sqlite3) y Vite se cuelga sin mostrar la URL. Reinstalá limpio:
+
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
+
+### 2. Entorno virtual de Python
+
+Debian/Ubuntu suele venir sin `ensurepip`/`venv`. Dos opciones:
+
+**Opción A — con permisos de administrador (recomendado):**
+```bash
+sudo apt install python3-venv python3-pip
+python3 -m venv backend/venv
+backend/venv/bin/pip install -r backend/requirements.txt
+```
+
+**Opción B — sin `sudo` (usando `virtualenv`):**
+```bash
+# Bootstrap de pip a nivel usuario
+curl -sSL https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
+python3 /tmp/get-pip.py --user --break-system-packages
+
+# virtualenv trae su propio pip (no depende de ensurepip)
+python3 -m pip install --user --break-system-packages virtualenv
+python3 -m virtualenv backend/venv
+backend/venv/bin/pip install -r backend/requirements.txt
+```
+
+### 3. Levantar todo
+
+```bash
+npm run start:local
+```
+
+---
+
 ## 🎯 Minimum Requerido (2 servicios)
 
 Con esto podés usar el Solver, la Calculadora y todas las herramientas matemáticas.
@@ -235,3 +297,19 @@ cd backend
 .\venv\Scripts\activate
 pip install -r requirements.txt
 ```
+
+### (Linux) Vite arranca pero nunca muestra la URL / se cuelga
+`node_modules` fue instalado en otra plataforma (binarios de Windows). Reinstalá limpio:
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
+
+### (Linux) "invalid ELF header" en `better-sqlite3`
+Mismo origen que el anterior (binario nativo de otra plataforma). Se resuelve con el reinstall de arriba, o puntualmente con:
+```bash
+npm rebuild better-sqlite3
+```
+
+### (Linux) "ensurepip is not available" al crear el venv
+Falta el paquete `python3-venv`. Instalalo con `sudo apt install python3-venv`, o usá la **Opción B** de la sección "Setup en Linux" (vía `virtualenv`, sin `sudo`).
